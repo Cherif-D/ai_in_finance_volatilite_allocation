@@ -1,0 +1,205 @@
+[
+  {
+    "file": "emetteurs/SPY_nav.xlsx",
+    "url": "https://www.ssga.com/library-content/products/fund-data/etfs/us/navhist-us-en-spy.xlsx",
+    "bytes": 279180,
+    "sha256": "291178c5524f96e4e551fab210712c5f1c00550a17c9d49846dc80b5c1ae5200",
+    "retrieved_utc": "2026-11-19T22:12:55.613147+00:00"
+  },
+  {
+    "file": "emetteurs/IEF_fonds.xml",
+    "url": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239456&component=fundDownload&userType=individual",
+    "bytes": 2494091,
+    "sha256": "a61d69bb65a181def456f90bbff9cf861a6a6c24e13e063dbb43758818615e30",
+    "retrieved_utc": "2026-11-19T22:12:57.931761+00:00"
+  },
+  {
+    "file": "yahoo/SPY.json",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/SPY?period1=1312156800&period2=1767225600&interval=1d&events=div%2Csplits&includeAdjustedClose=true",
+    "bytes": 402089,
+    "sha256": "ca80d84973489fbfd9201b3522697b73f829ae291f081a7e2d90898d4bcddf38",
+    "retrieved_utc": "2026-11-19T22:06:06.677064+00:00"
+  },
+  {
+    "file": "yahoo/IEF.json",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/IEF?period1=1312156800&period2=1767225600&interval=1d&events=div%2Csplits&includeAdjustedClose=true",
+    "bytes": 404645,
+    "sha256": "7896501c5cd79f1a3bb553c7a4e800a1de54e606ac73080ebf7d3df0cc9c6ad2",
+    "retrieved_utc": "2026-11-19T22:06:06.577017+00:00"
+  },
+  {
+    "file": "yahoo/SPX.json",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC?period1=1312156800&period2=1767225600&interval=1d&events=div%2Csplits&includeAdjustedClose=true",
+    "bytes": 384940,
+    "sha256": "290c5a1410ffdd0d9845805714eef926fdde8c42cd72197c1914c0ac3e2ec5d0",
+    "retrieved_utc": "2026-11-19T22:06:06.515605+00:00"
+  },
+  {
+    "file": "cboe/VIX9D.csv",
+    "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX9D_History.csv",
+    "bytes": 202835,
+    "sha256": "592320621437cff00e9e10cce6c731cfa8b27e3f2c7dcb6eae092ab64be6c7a3",
+    "retrieved_utc": "2026-11-19T22:06:07.632433+00:00"
+  },
+  {
+    "file": "cboe/VIX.csv",
+    "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv",
+    "bytes": 475012,
+    "sha256": "c0c3868399a0d97e7d5052d898dacfd054de654ed6d587614564b4ca40ed1883",
+    "retrieved_utc": "2026-11-19T22:06:07.602422+00:00"
+  },
+  {
+    "file": "cboe/VIX3M.csv",
+    "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX3M_History.csv",
+    "bytes": 220294,
+    "sha256": "41e3cd4fdb9a35bbfbb08f1c00fb5efa266b452054c00934a62437af70a20995",
+    "retrieved_utc": "2026-11-19T22:06:08.637707+00:00"
+  },
+  {
+    "file": "cboe/VIX6M.csv",
+    "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX6M_History.csv",
+    "bytes": 242326,
+    "sha256": "b2ee8eee5c34cb175248148963c8bc682aa32490f9a0c888188eb01871678cef",
+    "retrieved_utc": "2026-11-19T22:06:08.700953+00:00"
+  },
+  {
+    "file": "cboe/SKEW.csv",
+    "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/SKEW_History.csv",
+    "bytes": 204016,
+    "sha256": "55949956868283ce0a022366f2f28ff0b0a42879725662456e5f5c6604ba11e5",
+    "retrieved_utc": "2026-11-19T22:06:08.708887+00:00"
+  },
+  {
+    "file": "treasury/bills_2011.xml",
+    "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_bill_rates&field_tdr_date_value=2011",
+    "bytes": 666434,
+    "sha256": "92b4da7ffc7e637aba633e7f026bcfd3c89b8f46be84fd3c97068e452187a6fe",
+    "retrieved_utc": "2026-11-19T22:06:09.081414+00:00"
+  },
+  {
+    "file": "treasury/bills_2012.xml",
+    "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_bill_rates&field_tdr_date_value=2012",
+    "bytes": 666404,
+    "sha256": "e6ded62d48e6c5c639b7c7797dc355ce7d4586acdf51eb0a4506d03a5bf26051",
+    "retrieved_utc": "2026-11-19T22:06:09.333431+00:00"
+  },
+  {
+    "file": "treasury/bills_2013.xml",
+    "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_bill_rates&field_tdr_date_value=2013",
+    "bytes": 666404,
+    "sha256": "a35f88be674434aaf02e587146ead54e5d89c16609aeb923a4d3e10d6d7e0695",
+    "retrieved_utc": "2026-11-19T22:06:10.201164+00:00"
+  },
+  {
+    "file": "treasury/bills_2014.xml",
+    "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_bill_rates&field_tdr_date_value=2014",
+    "bytes": 666404,
+    "sha256": "be594d154bd2bc9f888941948546b0f72224ade99fde03ca0b73fde27ebac67c",
+    "retrieved_utc": "2026-11-19T22:06:10.684020+00:00"
+  },
+  {
+    "file": "treasury/bills_2015.xml",
+    "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_bill_rates&field_tdr_date_value=2015",
+    "bytes": 669183,
+    "sha256": "5c8306d435388fb06fd5820af8b6a80222a717a15179f00c373fd40efc75438f",
+    "retrieved_utc": "2026-11-19T22:06:10.793282+00:00"
+  },
+  {
+    "file": "treasury/bills_2016.xml",
+    "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_bill_rates&field_tdr_date_value=2016",
+    "bytes": 666404,
+    "sha256": "6f365f74e7376f7e36be127ab0585ba2f507e5259024a82fdd0bda3deeef276d",
+    "retrieved_utc": "2026-11-19T22:06:10.653556+00:00"
+  },
+  {
+    "file": "treasury/bills_2017.xml",
+    "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_bill_rates&field_tdr_date_value=2017",
+    "bytes": 666404,
+    "sha256": "6ec75b49c7edb5192451f1fd4d23bab8745eccf303c582c4550301d60e57f626",
+    "retrieved_utc": "2026-11-19T22:06:10.653556+00:00"
+  },
+  {
+    "file": "treasury/bills_2018.xml",
+    "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_bill_rates&field_tdr_date_value=2018",
+    "bytes": 684243,
+    "sha256": "8b490f0ee32588d858dfabde7feb670f7c41c67675f889cbfd80944cec670d3e",
+    "retrieved_utc": "2026-11-19T22:06:11.334527+00:00"
+  },
+  {
+    "file": "treasury/bills_2019.xml",
+    "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_bill_rates&field_tdr_date_value=2019",
+    "bytes": 766904,
+    "sha256": "e514c9fd65551a73c719b2a305dfb41da7f26babad24cf753cdc7f58c6e14ec8",
+    "retrieved_utc": "2026-11-19T22:06:12.146159+00:00"
+  },
+  {
+    "file": "treasury/bills_2020.xml",
+    "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_bill_rates&field_tdr_date_value=2020",
+    "bytes": 769983,
+    "sha256": "a82e708ab0f5b8d690b1d2dfd1db3db955c64e55876d42f15da6d86c18def45a",
+    "retrieved_utc": "2026-11-19T22:06:12.165162+00:00"
+  },
+  {
+    "file": "treasury/bills_2021.xml",
+    "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_bill_rates&field_tdr_date_value=2021",
+    "bytes": 769969,
+    "sha256": "ba844b3a0fedfa6cb7fbe6cb57adbecbf97066ac966e080c4ec5cb0b5cc5dc56",
+    "retrieved_utc": "2026-11-19T22:06:12.164177+00:00"
+  },
+  {
+    "file": "treasury/bills_2022.xml",
+    "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_bill_rates&field_tdr_date_value=2022",
+    "bytes": 764589,
+    "sha256": "39a4af8dde6c280ce4d5094d8f655d649273b3aea2a87393642f87813035f91c",
+    "retrieved_utc": "2026-11-19T22:06:12.149159+00:00"
+  },
+  {
+    "file": "treasury/bills_2023.xml",
+    "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_bill_rates&field_tdr_date_value=2023",
+    "bytes": 770654,
+    "sha256": "b96e77963e8fcb675230f3d1808549818a1ef3e7713795f40337b2eece26212e",
+    "retrieved_utc": "2026-11-19T22:06:12.892491+00:00"
+  },
+  {
+    "file": "treasury/bills_2024.xml",
+    "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_bill_rates&field_tdr_date_value=2024",
+    "bytes": 770654,
+    "sha256": "71d12a1942015d4421b645415851adb65160d4844e86f54de2fb54ad913611cf",
+    "retrieved_utc": "2026-11-19T22:06:13.586544+00:00"
+  },
+  {
+    "file": "treasury/bills_2025.xml",
+    "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_bill_rates&field_tdr_date_value=2025",
+    "bytes": 909930,
+    "sha256": "04d66780f9d08cd862afaecd56aa4388e4a56dcf7d01c17e46122baa51ee4502",
+    "retrieved_utc": "2026-11-19T22:06:13.465167+00:00"
+  },
+  {
+    "file": "hamidieh/spx.csv",
+    "url": "https://raw.githubusercontent.com/khamidieh/spx-options-derived-features/fd7df5847120471f8e8a1807aabc09a7581ddf7f/data/spx_options_features_data_public.csv",
+    "bytes": 434946,
+    "sha256": "378597130b3199e4cc1201fe10558d52dc595c3fc3584cca29d5a7c68ba8f0f7",
+    "retrieved_utc": "2026-11-19T22:06:13.734399+00:00"
+  },
+  {
+    "file": "french/daily.zip",
+    "url": "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/F-F_Research_Data_Factors_daily_CSV.zip",
+    "bytes": 178326,
+    "sha256": "96c23b88e651cbfff3740a53f8225e59ee39893371e96385a1d8125ec2cd9c89",
+    "retrieved_utc": "2026-11-19T22:14:32.984656+00:00"
+  },
+  {
+    "file": "surfaces/spx_long.npz",
+    "url": "https://raw.githubusercontent.com/DusBaja/ivs-generative-benchmark/0102e307d3d12692b7935ec44cf7bb21eeac8c4f/data/treated/vol_surface_spx_long.npz",
+    "bytes": 3076877,
+    "sha256": "4d7a396fba8add126a66c619cab0105b42f1e1251dcd6db6d1ddfe6b9ea36cdd",
+    "retrieved_utc": "2026-11-19T22:08:22.117435+00:00"
+  },
+  {
+    "file": "historicaldata/options_sample_2022H2.zip",
+    "url": "https://historicaldata.net/file/options_sample_2022H2.zip",
+    "bytes": 238583748,
+    "sha256": "8517b069f4d41e44f950dc79a3cdab694359b0fae91664190011e39dd8e48b76",
+    "retrieved_utc": "2026-11-19T22:07:26.736984+00:00"
+  }
+]

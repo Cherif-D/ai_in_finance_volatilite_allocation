@@ -1,0 +1,20 @@
+# Dépendances du projet (Python 3.12). Installation :
+#   .venv\Scripts\python.exe -m pip install -r requirements.txt
+
+# --- Collecte des sources ---
+requests==2.33.1            # téléchargements HTTP
+urllib3==2.6.3              # nouvelles tentatives en cas d'erreur réseau
+
+# --- Calculs et données ---
+numpy==2.3.5                # calcul numérique, interpolations
+pandas==3.0.2               # séries temporelles, fenêtres glissantes, jointures
+pyarrow==24.0.0             # lecture et écriture du Parquet des options
+openpyxl==3.1.5             # lecture du classeur Excel de State Street (SPY)
+exchange-calendars==4.13.3  # calendrier officiel des séances NYSE
+tzdata==2025.3              # fuseau horaire America/New_York
+
+# --- Modèles prévus par le protocole (Ridge, forêt aléatoire, MLP, XGBoost) ---
+scikit-learn==1.8.0
+xgboost==3.2.0
+
+# Le document de passation (docs/latex/) se compile avec XeLaTeX, installé hors de Python.

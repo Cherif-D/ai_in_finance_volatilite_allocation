@@ -1,281 +1,223 @@
-# Project Title
-
-⚠️ Replace this title with the **name of your project**
+# Prévoir le risque d'un portefeuille 60/40 grâce aux options, pour piloter son allocation
 
 ---
 
-# 1. Project Information
+# 1. Informations sur le projet
 
-Fill in the following information.
-
-- **Project Title:** [Insert project title]
-- **Group Name:** [Insert group name]
-- **Group Members:**  
-  - Student 1 – [Name]  
-  - Student 2 – [Name]  
-  - Student 3 – [Name]
-
-- **Course Name:** AI In Finance
-- **Instructor:** Nicolas De Roux & Mohamed EL FAKIR
-- **Submission Date:** [Insert date]
+- **Titre du projet :** Prévision de la volatilité d'un panier 60 % SPY / 40 % IEF et allocation pilotée par le risque
+- **Nom du groupe :** [à compléter]
+- **Membres du groupe :**
+  - Mamadou Cherif DIALLO
+  - [à compléter]
+  - [à compléter]
+- **Cours :** AI In Finance
+- **Enseignants :** Nicolas De Roux et Mohamed EL FAKIR
+- **Date de rendu :** 6 décembre 2026
 
 ---
 
-# 2. Project Description
+# 2. Description du projet
 
-📌 **Instructions:**  
-Write a short paragraph explaining the **problem addressed by the project**.
+Un investisseur détient un panier composé à 60 % d'actions américaines (l'ETF **SPY**, qui suit le S&P 500) et à 40 % d'obligations du Trésor américain à 7–10 ans (l'ETF **IEF**). Il veut que son portefeuille garde un risque à peu près constant, autour de **8 % de volatilité par an** : quand il s'attend à un marché agité, il investit moins et place le reste en liquidités (*cash*, rémunéré au taux des bons du Trésor).
 
-Include:
+Toute la difficulté est de **prévoir le risque du mois qui vient**. Le passé récent en dit beaucoup, mais les **prix des options** sur le S&P 500 contiennent aussi ce que le marché anticipe (la *volatilité implicite*, dont le VIX est la mesure la plus connue).
 
-- The context of the problem
-- Why the problem is interesting or important
-- Who might benefit from solving it
+**Question de recherche :** les informations tirées des options améliorent-elles la prévision du risque à 21 séances du panier, et la performance nette de l'allocation qui s'en sert, par rapport aux seules données historiques ?
 
-✏️ **Write your description below:**
-
-[Replace this text with your project description]
+Ce problème intéresse les gérants de fonds diversifiés, de fonds à volatilité cible et tout investisseur qui veut limiter ses pertes en crise (2020, 2022).
 
 ---
 
-# 3. Project Goal
+# 3. Objectif du projet
 
-📌 **Instructions:**  
-Clearly explain **what the project aims to achieve**.
+- **Ce que le modèle prévoit :** pour chaque séance *s*, la volatilité réalisée du panier sur les 21 séances suivantes, notée σ̂ₛ.
+- **Ce qu'on en fait :** la part investie dans le panier vaut *a* = min(1, 8 % / σ̂ₛ). Le reste va au cash. Il n'y a jamais d'emprunt.
+  - Exemple : si le modèle prévoit 16 %, on investit 8/16 = 50 % (30 % en SPY, 20 % en IEF, 50 % en cash).
+- **Ce qui compte comme une réussite :**
+  1. les modèles qui reçoivent les informations des options (ensemble B) prévoient mieux, hors échantillon, que ceux qui ne voient que le passé (ensemble A) ;
+  2. la stratégie garde un risque proche de 8 % et perd moins en crise qu'un panier 60/40 toujours investi à 100 %.
 
-Your answer should describe:
+On compare trois ensembles de variables, avec **la même cible, les mêmes dates et les mêmes modèles** : seule l'information donnée au modèle change.
 
-- What the system predicts, classifies, or analyzes
-- What a successful solution looks like
-
-Example goals:
-
-- Predict housing prices from property features
-- Classify medical images into disease categories
-- Detect sentiment in text reviews
-- Forecast electricity consumption
-
-✏️ **Write your project goal below:**
-
-[Replace this text with the goal of your project]
+| Ensemble | Ce que le modèle reçoit | État |
+|---|---|---|
+| **A** | le passé seul : 13 variables de risque, de rendement et de corrélation | construit |
+| **B** | A + les options : indices Cboe (VIX9D, VIX, VIX3M, VIX6M, SKEW) ou 8 indicateurs tirés de la surface de volatilité implicite | construit |
+| **C** | B + la volatilité locale de Dupire | non construit (données insuffisantes, voir le document de passation) |
 
 ---
 
-# 4. Task Definition
+# 4. Définition de la tâche
 
-📌 **Instructions:**  
-Define the **machine learning or data analysis task**.
-
-Specify:
-
-- **Task Type:** (classification, regression, clustering, etc.)
-- **Input:** What data is used as input
-- **Output:** What the model predicts
-- **Evaluation Metric:** How performance will be measured
-
-✏️ **Fill in the following:**
-
-- **Task Type:**  
-- **Input Variables:**  
-- **Target Variable:**  
-- **Evaluation Metric(s):**
+- **Type de tâche :** régression sur série temporelle (prévision à 21 séances).
+- **Variables d'entrée :** les 13 variables historiques A, puis A + les indices Cboe, puis A + les indicateurs de surface (section 5).
+- **Variable cible :** la volatilité réalisée annualisée du panier sur les séances *s*+2 à *s*+22 (colonne `vol_21j_ann`). Les modèles apprennent son carré en logarithme, log(`variance_21j_ann`).
+- **Métriques d'évaluation :**
+  - prévision : MAE, RMSE, QLIKE et R² sur la période de test ;
+  - allocation : volatilité réalisée de la stratégie (proche de 8 % ?), ratio de Sharpe, perte maximale (*maximum drawdown*), après 5 points de base de frais par changement de position.
 
 ---
 
-# 5. Dataset Description
+# 5. Description des données
 
-📌 **Instructions:**  
-Describe the dataset used in the project.
+Les données viennent de **29 sources publiques**, téléchargées le 19 novembre 2026 et alignées sur le calendrier de la Bourse de New York. Le fichier [`data/sources.json`](data/sources.json) donne, pour chacune, l'URL, la date et une empreinte SHA-256. Le détail complet est dans [`DONNEES.md`](DONNEES.md) et dans le [document de passation](docs/pdf/Passation_donnees_et_variables.pdf) (24 pages).
 
-❗ Do **not simply name the dataset**. Instead explain its structure and contents.
+## Vue d'ensemble
 
----
+- **Nombre d'observations :** 3 520 séances, du 3 janvier 2012 au 31 décembre 2025 (une ligne par séance).
+- **Nombre de variables :** 13 variables historiques (A), 5 indices Cboe et 8 indicateurs de surface (B).
+- **Variable cible :** `vol_21j_ann`, connue pour 3 498 séances (les 22 dernières n'ont pas encore de mois futur complet).
+- **Sources :** prix de Yahoo Finance (SPY, IEF, S&P 500), indices de Cboe, taux du Trésor américain, bibliothèque de Kenneth French, surface de volatilité implicite publiée par les auteurs de [ivs-generative-benchmark](https://github.com/DusBaja/ivs-generative-benchmark).
 
-## Dataset Overview
+## Description des variables
 
-Provide general information about the dataset.
+Fichiers à utiliser, dans [`data/prepare/`](data/prepare/) :
 
-Fill in:
+| Fichier | Contenu |
+|---|---|
+| `variables_A.csv` | les 13 variables A, **connues** à la date de la ligne |
+| `donnees_quotidiennes.csv` | 29 colonnes : prix, indices Cboe, indicateurs de surface, rendement du cash |
+| `cibles_futures.csv` | la cible, **inconnue** à la date de la ligne (calculée après coup) |
 
-- **Number of samples:**  
-- **Number of features:**  
-- **Target variable:**  
-- **Data source:** [Link if applicable]
+| Variable | Description | Type |
+|---|---|---|
+| `var_panier_5`, `var_panier_21`, `var_panier_63` | variance annualisée du panier sur 5, 21 ou 63 séances | numérique |
+| `var_spy_21`, `var_spy_63`, `var_ief_21`, `var_ief_63` | variance annualisée de SPY et d'IEF | numérique |
+| `rend_panier_21`, `rend_panier_63` | rendement cumulé du panier | numérique |
+| `semivar_baisse_21`, `semivar_baisse_63` | semi-variance des jours de baisse | numérique |
+| `corr_spy_ief_21`, `corr_spy_ief_63` | corrélation entre SPY et IEF | numérique, entre −1 et 1 |
+| `vix9d`, `vix`, `vix3m`, `vix6m`, `skew` | indices de volatilité implicite de Cboe | numérique |
+| `iv_30j_{95,100,105}spot_pct`, `iv_60j_{95,100,105}spot_pct` | volatilité implicite à 30 et 60 jours, prix d'exercice à 95 %, 100 % et 105 % du cours | numérique, en % |
+| `skew_30j_points` | IV à 95 % moins IV à 100 %, à 30 jours | numérique, en points |
+| `pente_60j_30j_points` | IV à 60 jours moins IV à 30 jours, au cours | numérique, en points |
 
----
+## Variable cible
 
-## Feature Description
+`vol_21j_ann` est la volatilité **réellement subie** par le panier sur les 21 séances qui suivent l'achat (fait à la clôture de *s*+1), annualisée, en décimal (0,0713 = 7,13 %). Elle sert uniquement à entraîner et à noter les modèles, jamais comme entrée. `fin_cible` donne la date à partir de laquelle elle est connue.
 
-📌 **Instructions:**  
-List and describe the most important variables.
+## Types de données
 
-Example table:
+Toutes les variables sont numériques et forment une **série temporelle quotidienne**. Il n'y a ni texte ni variable catégorielle. La seule colonne booléenne, `vix9d_vix6m_diffuses`, indique si VIX9D et VIX6M étaient publiés en temps réel ce jour-là.
 
-| Feature | Description | Type |
-|------|------|------|
-| age | Age of individual | Numerical |
-| income | Annual income | Numerical |
-| gender | Gender category | Categorical |
+## Distribution des données
 
-✏️ **Insert your feature description table here**
+- **Cible asymétrique :** 7,1 % en médiane, 8,4 % en moyenne, 47,8 % au maximum (signal du 5 mars 2020, krach du Covid). D'où le passage au logarithme.
+- **Variables A très corrélées entre elles :** les variances sur différentes fenêtres bougent ensemble.
+- **Changement de régime :** la corrélation SPY–IEF sur 63 séances vaut −0,36 en moyenne jusqu'en 2021, puis +0,06 depuis 2022, quand actions et obligations ont baissé ensemble.
+- **Premier indice :** la cible est plus corrélée au VIX (0,61) qu'à la volatilité passée sur 21 séances (0,53), sur tout l'échantillon. Ce n'est pas encore une prévision.
 
----
+## Qualité des données
 
-## Target Variable
-
-📌 **Instructions:**  
-Explain what the model is trying to predict.
-
-Include:
-
-- Variable name
-- Meaning
-- Possible values (if classification)
-
-✏️ **Write your explanation here**
-
----
-
-## Data Types
-
-📌 **Instructions:**  
-Describe the types of variables present in the dataset.
-
-Examples:
-
-- Numerical
-- Categorical
-- Ordinal
-- Text
-- Time-series
-
-✏️ **Describe the column types here**
+- **Surface d'options :** elle ne couvre que 2017–2023. Il reste 1 734 séances complètes après contrôle, dont 6 surfaces corrompues de mai 2019 écartées.
+- **Valeurs manquantes :** VIX9D et VIX6M ne sont publiés en temps réel qu'à partir du 27 novembre 2013 (avant cette date, les valeurs ont été reconstruites après coup). Les 22 dernières cibles sont vides. Aucun trou n'est comblé artificiellement.
+- **Contrôles :** 7 tests unitaires et un audit indépendant de 48 contrôles. Un recoupement avec de vrais contrats de 2022 trouve un écart médian de 0,55 point de volatilité avec la surface.
 
 ---
 
-## Data Distribution
+# 6. Prétraitement des données
 
-📌 **Instructions:**  
-Describe important distribution characteristics.
-
-Examples:
-
-- Class balance or imbalance
-- Skewed numerical variables
-- Range of key features
-
-✏️ **Describe the data distribution here**
-
----
-
-## Data Quality
-
-📌 **Instructions:**  
-Mention any issues found in the dataset.
-
-Examples:
-
-- Missing values
-- Outliers
-- Imbalanced classes
-- Duplicate entries
-
-✏️ **Describe any data quality issues here**
+| Étape | Pourquoi |
+|---|---|
+| Alignement de toutes les sources sur le calendrier NYSE, sans remplissage des trous | comparer des séances identiques sans inventer de données |
+| Rendements calculés sur les cours ajustés (dividendes réinvestis) | mesurer le vrai gain de l'investisseur |
+| Contrôle de qualité de la surface, avec rejet des journées aberrantes | éviter d'apprendre sur des données corrompues |
+| Interpolation de la surface (en variance, puis en variance totale selon l'échéance), un jour à la fois | obtenir les IV à 95/100/105 % et 30/60 jours sans utiliser d'information future |
+| Construction des variables A sur des fenêtres qui se terminent le jour du signal | aucune fuite du futur |
+| *À faire :* découpage chronologique avec **purge** (une cible d'apprentissage doit être terminée avant le début du test) | les cibles se chevauchent sur 21 séances : un découpage au hasard mélangerait passé et futur |
+| *À faire :* mise à l'échelle calculée sur la période d'apprentissage seulement | même raison |
 
 ---
 
-# 6. Data Preprocessing
+# 7. Approche de modélisation
 
-📌 **Instructions:**  
-Explain the preprocessing steps applied before modeling.
+## Modèles choisis
 
-Examples:
+*Étapes 5 à 7 en cours.*
 
-- Handling missing values
-- Removing duplicates
-- Encoding categorical variables
-- Normalizing or scaling features
-- Feature engineering
+- **Références simples :** persistance (volatilité des 21 dernières séances), EWMA (RiskMetrics), GARCH(1,1).
+- **Modèles d'apprentissage :** régression Ridge, forêt aléatoire, XGBoost, entraînés sur le logarithme de la variance.
 
-For each step briefly explain **why it was necessary**.
+## Stratégie de modélisation
 
-✏️ **Describe your preprocessing steps here**
+- **Références d'abord :** un modèle d'apprentissage n'a d'intérêt que s'il bat la persistance et l'EWMA, qui sont déjà de bonnes prévisions.
+- **Même modèle, trois ensembles de variables (A, A + Cboe, A + surface) :** c'est une expérience contrôlée qui isole l'apport des options.
+- **Découpage dans le temps :** apprentissage jusqu'à fin 2019 (avec purge), test à partir de 2020 pour A et A + Cboe. Pour A + surface, la période est plus courte (par exemple apprentissage 2017–2020, test 2021–2023).
+- **Réglages :** choisis par validation glissante sur 2015–2019, jamais sur la période de test.
 
----
+## Métriques d'évaluation
 
-# 7. Modeling Approach
-
-📌 **Instructions:**  
-Explain how you solved the problem.
-
----
-
-## Chosen Models
-
-List the models or algorithms used.
-
-Examples:
-
-- Linear Regression
-- Logistic Regression
-- Random Forest
-- Gradient Boosting
-- Neural Networks
-
-✏️ **List and describe the models used**
+- **MAE et RMSE** sur la volatilité : l'erreur moyenne, en points de volatilité. La RMSE punit davantage les grosses erreurs.
+- **QLIKE** sur la variance : la métrique de référence pour comparer des prévisions de volatilité. Elle reste fiable quand la cible est mesurée avec du bruit et punit davantage une sous-estimation du risque.
+- **R²** : la part de la variation de la cible que le modèle explique.
+- **Backtest :** volatilité réalisée de la stratégie, ratio de Sharpe et perte maximale, comparés au panier 60/40 toujours investi.
 
 ---
 
-## Modeling Strategy
+# 8. Structure du dépôt
 
-📌 **Instructions:**  
-Explain:
+```
+├── README.md                   ce fichier
+├── DONNEES.md                  sources, conventions et commandes de reproduction
+├── PROJECT_GUIDELINES.md       consignes du cours
+├── requirements.txt            versions exactes des bibliothèques Python
+├── data/
+│   ├── sources.json            manifeste des 29 téléchargements
+│   ├── prepare/                données prêtes pour la modélisation (CSV)
+│   └── controles/              résultats des contrôles de qualité
+├── docs/
+│   ├── pdf/                    document de passation (24 pages) et propositions du projet
+│   └── latex/                  source du document et script de sa figure
+├── notebooks/                  exploration des données (étape 2)
+├── selected_approach/          modèle retenu, évaluation et backtest
+├── src/                        (réservé au code de modélisation réutilisable)
+├── portefeuille/               ajouté : paquet Python de collecte, prétraitement et variables
+├── scripts/                    ajouté : 01_collecte, 02_preparation, 03_controle_surface
+└── tests/                      ajouté : tests unitaires et audit des données
+```
 
-- Why you selected these models
-- Whether you used a baseline model
-- If hyperparameter tuning was performed
-- Whether cross-validation was used
+**Dossiers ajoutés au modèle du cours :**
+- `portefeuille/` contient tout le code de préparation : collecte, prétraitement, cible, variables A et B, contrôles ;
+- `scripts/` enchaîne ces fonctions dans l'ordre ;
+- `tests/` vérifie les calculs.
 
-✏️ **Explain your modeling strategy**
+Ce code est importable depuis la racine du dépôt (`from portefeuille.features import cible`).
 
----
+**Fichiers absents du dépôt :**
+- les données brutes (247 Mo) ;
+- les deux fichiers tirés de l'échantillon d'options 2022 (`termes_indicatifs_2022S2.csv` et `controle_chaines_et_surfaces.csv`), dont le fournisseur encadre la redistribution.
 
-## Evaluation Metrics
-
-📌 **Instructions:**  
-Specify the metrics used to evaluate model performance.
-
-Examples:
-
-- Accuracy
-- Precision / Recall
-- F1-score
-- ROC-AUC
-- Mean Absolute Error
-- RMSE
-
-Also explain **why these metrics are appropriate**.
-
-✏️ **Describe your evaluation metrics**
-
----
-
-# 8. Project Structure
-
-📌 **Instructions:**  
-Explain how the repository is organized.
-
-
-If you added additional folders, explain them.
+Les scripts les recréent (voir section 9).
 
 ---
 
 # 9. Installation
 
-📌 **Instructions:**  
-Explain how to install project dependencies.
+Sous Windows, avec Python 3.12 :
 
-Example:
+```powershell
+git clone https://github.com/Cherif-D/ai_in_finance_volatilite_allocation.git
+cd ai_in_finance_volatilite_allocation
+py -3.12 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+```
 
-```bash
-pip install -r requirements.txt
+Les données de `data/prepare/` suffisent pour explorer et modéliser. Pour tout reconstruire depuis les sources (environ 250 Mo téléchargés) :
+
+```powershell
+.\.venv\Scripts\python.exe scripts/01_collecte.py
+.\.venv\Scripts\python.exe scripts/02_preparation.py
+.\.venv\Scripts\python.exe scripts/03_controle_surface.py
+.\.venv\Scripts\python.exe tests/audit_donnees.py
+```
+
+Pour charger les données dans un notebook :
+
+```python
+import pandas as pd
+
+def lire(nom):
+    return pd.read_csv(f"data/prepare/{nom}", index_col="date", parse_dates=True)
+
+quotidien, A, cible = lire("donnees_quotidiennes.csv"), lire("variables_A.csv"), lire("cibles_futures.csv")
+```

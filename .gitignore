@@ -1,0 +1,86 @@
+# Python environments and caches
+.venv/
+venv/
+env/
+ENV/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.coverage
+htmlcov/
+*.egg-info/
+build/
+dist/
+
+# Secrets and credentials
+.env
+.env.*
+!.env.example
+!.env.template
+.secrets/
+secrets/
+credentials/
+credentials*.json
+client_secret*.json
+service_account*.json
+service-account*.json
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Supports de cours des enseignants (non republiés)
+Course 6 Project.pdf
+
+# Local Claude Code settings and scratch work
+.claude/
+tmp/
+
+# Fichiers intermédiaires de compilation LaTeX
+docs/latex/build/
+
+# Local editor, operating system, and temporary files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.log
+*.tmp
+*.temp
+*.swp
+*~
+
+# Local datasets and generated machine learning artifacts
+# On publie seulement les données légères : manifeste, CSV préparés et contrôles.
+# Les données brutes (247 Mo) et le Parquet des chaînes 2022 (87 Mo, redistribution encadrée)
+# restent locaux : scripts/01_collecte.py et scripts/03_controle_surface.py les recréent.
+data/*
+!data/sources.json
+!data/prepare/
+data/prepare/*
+!data/prepare/*.csv
+!data/controles/
+# Dérivés de l'échantillon d'options 2022, dont le fournisseur encadre la redistribution
+# (le dépôt est public) : scripts/03_controle_surface.py les recrée.
+data/prepare/termes_indicatifs_2022S2.csv
+data/controles/controle_chaines_et_surfaces.csv
+datasets/
+models/
+checkpoints/
+mlruns/
+wandb/
+*.pkl
+*.pickle
+*.joblib
+*.h5
+*.hdf5
+*.pt
+*.pth
+*.onnx
+*.ckpt
+*.safetensors
