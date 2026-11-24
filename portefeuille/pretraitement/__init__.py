@@ -8,13 +8,14 @@ tableau indexé par date. Règles communes :
 - une anomalie de structure arrête le programme plutôt que de produire un résultat faux.
 
 Modules : ``marches`` (ETF, SPX, indices Cboe), ``taux`` (T-bills et cash),
-``options`` (surface et variables de Hamidieh), ``emetteurs`` (contrôles State Street et iShares).
+``options`` (surface et variables de Hamidieh), ``bloomberg`` (surface de l'ensemble C), ``emetteurs`` (contrôles State Street et iShares).
 """
+from .bloomberg import charger_chaine_bloomberg, charger_surface_bloomberg
 from .emetteurs import charger_emetteurs
 from .marches import charger_indices_cboe, charger_prix, dates_new_york
 from .options import charger_grille_surface, charger_hamidieh
 from .taux import charger_cash_french, charger_taux_tresor, rendement_cash_tbill
 
-__all__ = ["charger_emetteurs", "charger_indices_cboe", "charger_prix", "dates_new_york",
+__all__ = ["charger_chaine_bloomberg", "charger_surface_bloomberg", "charger_emetteurs", "charger_indices_cboe", "charger_prix", "dates_new_york",
            "charger_grille_surface", "charger_hamidieh", "charger_cash_french",
            "charger_taux_tresor", "rendement_cash_tbill"]

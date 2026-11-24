@@ -42,15 +42,15 @@ On compare trois ensembles de variables, avec **la même cible, les mêmes dates
 | Ensemble | Ce que le modèle reçoit | État |
 |---|---|---|
 | **A** | le passé seul : 13 variables de risque, de rendement et de corrélation | construit |
-| **B** | A + les options : indices Cboe (VIX9D, VIX, VIX3M, VIX6M, SKEW) ou 8 indicateurs tirés de la surface de volatilité implicite | construit |
-| **C** | B + la volatilité locale de Dupire | non construit (données insuffisantes, voir le document de passation) |
+| **B** | A + les options : 8 indicateurs tirés de la surface Bloomberg du SPX (2012–2025), ou les indices Cboe (VIX9D, VIX, VIX3M, VIX6M, SKEW) ; la surface universitaire (2017–2023) sert de contrôle | construit (fichier privé, voir plus bas) |
+| **C** | B + la volatilité locale de Dupire, tirée de la même surface Bloomberg | construit (fichier privé, voir plus bas) |
 
 ---
 
 # 4. Définition de la tâche
 
 - **Type de tâche :** régression sur série temporelle (prévision à 21 séances).
-- **Variables d'entrée :** les 13 variables historiques A, puis A + les indices Cboe, puis A + les indicateurs de surface (section 5).
+- **Variables d'entrée :** les 13 variables historiques A, puis A + les indices Cboe, puis A + B (surface Bloomberg), puis A + B + C (section 5).
 - **Variable cible :** la volatilité réalisée annualisée du panier sur les séances *s*+2 à *s*+22 (colonne `vol_21j_ann`). Les modèles apprennent son carré en logarithme, log(`variance_21j_ann`).
 - **Métriques d'évaluation :**
   - prévision : MAE, RMSE, QLIKE et R² sur la période de test ;
@@ -60,14 +60,14 @@ On compare trois ensembles de variables, avec **la même cible, les mêmes dates
 
 # 5. Description des données
 
-Les données viennent de **29 sources publiques**, téléchargées le 19 novembre 2026 et alignées sur le calendrier de la Bourse de New York. Le fichier [`data/sources.json`](data/sources.json) donne, pour chacune, l'URL, la date et une empreinte SHA-256. Le détail complet est dans [`DONNEES.md`](DONNEES.md) et dans le [document de passation](docs/pdf/Passation_donnees_et_variables.pdf) (24 pages).
+Les données viennent de **29 sources publiques**, téléchargées le 19 novembre 2026 et alignées sur le calendrier de la Bourse de New York. Le fichier [`data/sources.json`](data/sources.json) donne, pour chacune, l'URL, la date et une empreinte SHA-256. Le détail complet est dans [`DONNEES.md`](DONNEES.md) et dans le [document de passation](docs/pdf/Passation_donnees_et_variables.pdf) (27 pages).
 
 ## Vue d'ensemble
 
 - **Nombre d'observations :** 3 520 séances, du 3 janvier 2012 au 31 décembre 2025 (une ligne par séance).
-- **Nombre de variables :** 13 variables historiques (A), 5 indices Cboe et 8 indicateurs de surface (B).
+- **Nombre de variables :** 13 variables historiques (A), 5 indices Cboe, 8 indicateurs implicites (B) et 8 variables de volatilité locale (C).
 - **Variable cible :** `vol_21j_ann`, connue pour 3 498 séances (les 22 dernières n'ont pas encore de mois futur complet).
-- **Sources :** prix de Yahoo Finance (SPY, IEF, S&P 500), indices de Cboe, taux du Trésor américain, bibliothèque de Kenneth French, surface de volatilité implicite publiée par les auteurs de [ivs-generative-benchmark](https://github.com/DusBaja/ivs-generative-benchmark).
+- **Sources :** prix de Yahoo Finance (SPY, IEF, S&P 500), indices de Cboe, taux du Trésor américain, bibliothèque de Kenneth French, surface de volatilité implicite publiée par les auteurs de [ivs-generative-benchmark](https://github.com/DusBaja/ivs-generative-benchmark), surface Bloomberg du SPX et compléments (privés, quatre classeurs).
 
 ## Description des variables
 
@@ -76,8 +76,9 @@ Fichiers à utiliser, dans [`data/prepare/`](data/prepare/) :
 | Fichier | Contenu |
 |---|---|
 | `variables_A.csv` | les 13 variables A, **connues** à la date de la ligne |
-| `donnees_quotidiennes.csv` | 29 colonnes : prix, indices Cboe, indicateurs de surface, rendement du cash |
+| `donnees_quotidiennes.csv` | 29 colonnes : prix, indices Cboe, indicateurs de la surface universitaire (contrôle de B), rendement du cash |
 | `cibles_futures.csv` | la cible, **inconnue** à la date de la ligne (calculée après coup) |
+| `variables_B.csv`, `variables_C.csv` | **hors dépôt** : B (8 indicateurs, mêmes noms de colonnes que la surface universitaire) et C (volatilité locale), recréés par `scripts/04_surface_bloomberg.py` à partir des classeurs Bloomberg privés |
 
 | Variable | Description | Type |
 |---|---|---|
@@ -90,6 +91,8 @@ Fichiers à utiliser, dans [`data/prepare/`](data/prepare/) :
 | `iv_30j_{95,100,105}spot_pct`, `iv_60j_{95,100,105}spot_pct` | volatilité implicite à 30 et 60 jours, prix d'exercice à 95 %, 100 % et 105 % du cours | numérique, en % |
 | `skew_30j_points` | IV à 95 % moins IV à 100 %, à 30 jours | numérique, en points |
 | `pente_60j_30j_points` | IV à 60 jours moins IV à 30 jours, au cours | numérique, en points |
+| `vl_{30,60}j_{95,100,105}spot_pct` | volatilité locale de Dupire aux mêmes points (C, `variables_C.csv`) | numérique, en % |
+| `skew_vl_30j_points`, `pente_vl_60j_30j_points` | skew et pente de la volatilité locale (C) | numérique, en points |
 
 ## Variable cible
 
@@ -108,9 +111,9 @@ Toutes les variables sont numériques et forment une **série temporelle quotidi
 
 ## Qualité des données
 
-- **Surface d'options :** elle ne couvre que 2017–2023. Il reste 1 734 séances complètes après contrôle, dont 6 surfaces corrompues de mai 2019 écartées.
+- **Surface d'options :** Bloomberg couvre 2012–2025 ; 2 journées douteuses de 2022 sont écartées (3 518 séances restent). Sur 777 vraies options expirées (2015–2025), l'IV des contrats s'écarte de la surface de 0,32 point en médiane. La surface universitaire ne couvre que 2017–2023 (1 734 séances après rejet de 6 surfaces corrompues de mai 2019) ; elle s'accorde avec Bloomberg à 0,28 point près au cours.
 - **Valeurs manquantes :** VIX9D et VIX6M ne sont publiés en temps réel qu'à partir du 27 novembre 2013 (avant cette date, les valeurs ont été reconstruites après coup). Les 22 dernières cibles sont vides. Aucun trou n'est comblé artificiellement.
-- **Contrôles :** 7 tests unitaires et un audit indépendant de 48 contrôles. Un recoupement avec de vrais contrats de 2022 trouve un écart médian de 0,55 point de volatilité avec la surface.
+- **Contrôles :** 17 tests unitaires (dont 3 sautés sans les classeurs Bloomberg privés) et un audit indépendant de 48 contrôles. Un recoupement avec de vrais contrats de 2022 trouve un écart médian de 0,55 point de volatilité avec la surface.
 
 ---
 
@@ -140,8 +143,8 @@ Toutes les variables sont numériques et forment une **série temporelle quotidi
 ## Stratégie de modélisation
 
 - **Références d'abord :** un modèle d'apprentissage n'a d'intérêt que s'il bat la persistance et l'EWMA, qui sont déjà de bonnes prévisions.
-- **Même modèle, trois ensembles de variables (A, A + Cboe, A + surface) :** c'est une expérience contrôlée qui isole l'apport des options.
-- **Découpage dans le temps :** apprentissage jusqu'à fin 2019 (avec purge), test à partir de 2020 pour A et A + Cboe. Pour A + surface, la période est plus courte (par exemple apprentissage 2017–2020, test 2021–2023).
+- **Même modèle, plusieurs ensembles de variables (A, A + Cboe, A + B, A + B + C) :** c'est une expérience contrôlée qui isole l'apport des options, puis celui de la volatilité locale.
+- **Découpage dans le temps :** apprentissage jusqu'à fin 2019 (avec purge), test à partir de 2020, pour tous les ensembles. En contrôle, A + B universitaire sur 2017–2023 (par exemple apprentissage 2017–2020, test 2021–2023).
 - **Réglages :** choisis par validation glissante sur 2015–2019, jamais sur la période de test.
 
 ## Métriques d'évaluation
@@ -165,18 +168,18 @@ Toutes les variables sont numériques et forment une **série temporelle quotidi
 │   ├── prepare/                données prêtes pour la modélisation (CSV)
 │   └── controles/              résultats des contrôles de qualité
 ├── docs/
-│   ├── pdf/                    document de passation (24 pages) et propositions du projet
-│   └── latex/                  source du document et script de sa figure
+│   ├── pdf/                    document de passation (27 pages) et propositions du projet
+│   └── latex/                  source du document et script de ses figures
 ├── notebooks/                  exploration des données (étape 2)
 ├── selected_approach/          modèle retenu, évaluation et backtest
 ├── src/                        (réservé au code de modélisation réutilisable)
 ├── portefeuille/               ajouté : paquet Python de collecte, prétraitement et variables
-├── scripts/                    ajouté : 01_collecte, 02_preparation, 03_controle_surface
+├── scripts/                    ajouté : 01_collecte, 02_preparation, 03_controle_surface, 04_surface_bloomberg
 └── tests/                      ajouté : tests unitaires et audit des données
 ```
 
 **Dossiers ajoutés au modèle du cours :**
-- `portefeuille/` contient tout le code de préparation : collecte, prétraitement, cible, variables A et B, contrôles ;
+- `portefeuille/` contient tout le code de préparation : collecte, prétraitement, cible, variables A, B et C, contrôles ;
 - `scripts/` enchaîne ces fonctions dans l'ordre ;
 - `tests/` vérifie les calculs.
 
@@ -184,7 +187,8 @@ Ce code est importable depuis la racine du dépôt (`from portefeuille.features 
 
 **Fichiers absents du dépôt :**
 - les données brutes (247 Mo) ;
-- les deux fichiers tirés de l'échantillon d'options 2022 (`termes_indicatifs_2022S2.csv` et `controle_chaines_et_surfaces.csv`), dont le fournisseur encadre la redistribution.
+- les deux fichiers tirés de l'échantillon d'options 2022 (`termes_indicatifs_2022S2.csv` et `controle_chaines_et_surfaces.csv`), dont le fournisseur encadre la redistribution ;
+- les quatre classeurs Bloomberg (`data/brut/bloomberg/`) et ce qui en dérive (`variables_B.csv`, `variables_C.csv` et quatre fichiers de contrôle) : Bloomberg interdit leur diffusion. Ils se demandent à Maxime, qui les a extraits, et ne doivent jamais être committés.
 
 Les scripts les recréent (voir section 9).
 
@@ -202,13 +206,15 @@ py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
 
-Les données de `data/prepare/` suffisent pour explorer et modéliser. Pour tout reconstruire depuis les sources (environ 250 Mo téléchargés) :
+Les données publiques de `data/prepare/` suffisent pour explorer et modéliser A et A + indices Cboe ; B et C demandent les classeurs Bloomberg privés. Pour tout reconstruire depuis les sources (environ 250 Mo téléchargés) :
 
 ```powershell
 .\.venv\Scripts\python.exe scripts/01_collecte.py
 .\.venv\Scripts\python.exe scripts/02_preparation.py
 .\.venv\Scripts\python.exe scripts/03_controle_surface.py
 .\.venv\Scripts\python.exe tests/audit_donnees.py
+# ensembles B et C : placer d'abord les classeurs Bloomberg dans data/brut/bloomberg/
+.\.venv\Scripts\python.exe scripts/04_surface_bloomberg.py
 ```
 
 Pour charger les données dans un notebook :

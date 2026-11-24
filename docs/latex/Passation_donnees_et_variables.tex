@@ -100,6 +100,7 @@
 \newcommand{\notation}[2]{\makebox[2.3cm][l]{#1}\parbox[t]{\dimexpr\linewidth-2.3cm\relax}{#2}\par}
 
 \input{figures/series_mensuelles.tex}
+\input{figures/sourire_local.tex}
 
 \begin{document}
 
@@ -113,19 +114,19 @@
      {\fontsize{22}{26}\selectfont\bfseries Passation n\textsuperscript{o}\,1 : données, prétraitement\\[3pt] et construction des variables}\\[7pt]
      {\normalsize Prévision du risque d'un portefeuille actions–obligations et apport de l'information des options}};
   \node[anchor=south east,text=white!85!marine,align=right,font=\small] at ([xshift=-15mm,yshift=-4.35cm]current page.north east)
-    {Mamadou Cherif DIALLO\enspace·\enspace 21 novembre 2026\\ Cours \emph{Introduction to Machine Learning} — M.~El Fakir, N.~de Roux};
+    {Mamadou Cherif DIALLO\enspace·\enspace 24 novembre 2026\\ Cours \emph{Introduction to Machine Learning} — M.~El Fakir, N.~de Roux};
 \end{tikzpicture}
 \vspace*{4.05cm}
 
 \begin{retenir}{En une minute}
-J'ai collecté 29 sources de marché et je les ai alignées sur le calendrier de la Bourse de New York. J'ai ensuite construit la \textbf{cible} à prévoir : la volatilité du panier composé à 60\,\% de l'ETF actions SPY et à 40\,\% de l'ETF obligataire IEF, mesurée sur les 21 séances suivantes. J'ai aussi construit deux familles de variables explicatives : les \textbf{13 variables historiques (A)} et les \textbf{8 indicateurs tirés des options (B)}. Chaque chiffre se recalcule avec trois scripts et est contrôlé par 7 tests et un audit indépendant de 48 contrôles. Aucun modèle n'est encore entraîné. Ce document explique, pour chaque donnée, \emph{ce qu'elle est}, \emph{comment elle est calculée} et \emph{sous quelles hypothèses}, pour que vous repreniez à l'étape d'exploration (section~\ref{sec:suite}).
+J'ai collecté 29 sources de marché et je les ai alignées sur le calendrier de la Bourse de New York. J'ai ensuite construit la \textbf{cible} à prévoir : la volatilité du panier composé à 60\,\% de l'ETF actions SPY et à 40\,\% de l'ETF obligataire IEF, mesurée sur les 21 séances suivantes. J'ai aussi construit trois familles de variables explicatives : les \textbf{13 variables historiques (A)}, les \textbf{8 indicateurs tirés des options (B)} et la \textbf{volatilité locale (C)} ; B et C sont tirés d'une surface Bloomberg 2012–2025. Chaque chiffre se recalcule avec quatre scripts et est contrôlé par 17 tests et un audit indépendant de 48 contrôles. Aucun modèle n'est encore entraîné. Ce document explique, pour chaque donnée, \emph{ce qu'elle est}, \emph{comment elle est calculée} et \emph{sous quelles hypothèses}, pour que vous repreniez à l'étape d'exploration (section~\ref{sec:suite}).
 \end{retenir}
 
 \begin{tcbraster}[raster columns=4,raster equal height,raster column skip=6pt,raster before skip=2pt,raster after skip=4pt]
 \begin{tcolorbox}[tuile]{\color{sarcelle}\Large\faIcon{calendar-alt}}\\[2pt]{\Large\bfseries\color{marine}3\,520}\\{\small séances, 2012–2025}\end{tcolorbox}
-\begin{tcolorbox}[tuile]{\color{sarcelle}\Large\faIcon{database}}\\[2pt]{\Large\bfseries\color{marine}29}\\{\small fichiers de données, 8 fournisseurs}\end{tcolorbox}
-\begin{tcolorbox}[tuile]{\color{sarcelle}\Large\faIcon{layer-group}}\\[2pt]{\Large\bfseries\color{marine}13 + 8}\\{\small variables A et B}\end{tcolorbox}
-\begin{tcolorbox}[tuile]{\color{sarcelle}\Large\faIcon{clipboard-check}}\\[2pt]{\Large\bfseries\color{marine}7 + 48}\\{\small tests et contrôles d'audit}\end{tcolorbox}
+\begin{tcolorbox}[tuile]{\color{sarcelle}\Large\faIcon{database}}\\[2pt]{\Large\bfseries\color{marine}29 + 4}\\{\small fichiers publics, classeurs Bloomberg}\end{tcolorbox}
+\begin{tcolorbox}[tuile]{\color{sarcelle}\Large\faIcon{layer-group}}\\[2pt]{\Large\bfseries\color{marine}13 + 8 + 8}\\{\small variables A, B et C}\end{tcolorbox}
+\begin{tcolorbox}[tuile]{\color{sarcelle}\Large\faIcon{clipboard-check}}\\[2pt]{\Large\bfseries\color{marine}17 + 48}\\{\small tests et contrôles d'audit}\end{tcolorbox}
 \end{tcbraster}
 
 \textbf{Comment lire ce document.} Les nombres entre crochets, comme [23], renvoient à la liste des \textbf{références} à la fin du document : la source ou l'article d'où vient l'information (ils sont cliquables). Les formules sont numérotées (1), (2)… et portent un nom ; leur liste complète est en annexe~\ref{sec:equations}. Sous chaque formule, une légende définit \emph{chaque} symbole. Les abréviations sont définies à la section~\ref{sec:abreviations}, les colonnes des fichiers dans les fiches de l'annexe~\ref{sec:fiches} et les symboles dans l'index de l'annexe~\ref{sec:symboles}. Code couleur des encadrés : \textcolor{sarcelle}{\textbf{vert d'eau}}, nos formules ; \textcolor{discret}{\textbf{gris}}, les calculs d'un fournisseur ; \textcolor{marine}{\textbf{bleu}}, à retenir ; \textcolor{orange}{\textbf{orange}}, points d'attention ; \textcolor{rouge}{\textbf{rouge}}, corrections ; \textcolor{vert}{\textbf{vert}}, contrôles validés.
@@ -154,7 +155,11 @@ IV & \emph{Implied Volatility}, volatilité implicite : volatilité qui, dans le
 \rowcolor{gris}K/S & \emph{moneyness} : prix d'exercice rapporté au cours du sous-jacent & UTC & temps universel coordonné \\
 MAE & \emph{Mean Absolute Error}, erreur absolue moyenne & VIX, VIX9D, VIX3M, VIX6M & indices de volatilité de Cboe à 30 jours, 9 jours, 3 mois, 6 mois (équations~\ref{eq:vix}–\ref{eq:vix30}) \\
 \rowcolor{gris}MLP & \emph{Multilayer Perceptron}, réseau de neurones dense & XGBoost & \emph{eXtreme Gradient Boosting}, arbres de décision ajoutés successivement \\
-NaN & \emph{Not a Number} : case vide, valeur manquante & & \\
+NaN & \emph{Not a Number} : case vide, valeur manquante & OIS & \emph{Overnight Indexed Swap} : taux d'échange contre le taux au jour le jour ; mesure du coût de financement sans risque \\
+ES & contrat à terme \emph{E-mini S\&P~500} de la Bourse de Chicago (CME) ; ES1, ES2… : la 1\textsuperscript{re}, 2\textsuperscript{e}… échéance & OHLC & \emph{Open, High, Low, Close} : prix d'ouverture, plus haut, plus bas et clôture d'une séance \\
+\rowcolor{gris}$R^2$ & part de la variation de la cible expliquée par le modèle (1 = parfait, 0 = pas mieux que la moyenne) & SHAP & \emph{SHapley Additive exPlanations} : part de chaque variable dans une prévision \\
+SPXT & indice S\&P~500 dividendes réinvestis (\emph{total return}) & VIX1Y & indice de volatilité de Cboe à 1 an \\
+\rowcolor{gris}SOFR & \emph{Secured Overnight Financing Rate}, taux au jour le jour du marché américain garanti par des bons du Trésor & VVIX & indice de Cboe : la volatilité du VIX lui-même (« volatilité de la volatilité ») \\
 \end{longtable}}
 
 \textbf{Vocabulaire des options.}
@@ -174,13 +179,13 @@ En français simple : on prend toutes les options qui expirent le même jour et 
 \item La \textbf{probabilité risque-neutre} est celle sous laquelle les prix d'options sont des espérances actualisées. Les investisseurs paient pour se protéger : le risque anticipé par les options dépasse en moyenne le risque réalisé. Cet écart est la \textbf{prime de risque de variance} \cite{carrwu}.
 \item La \textbf{volatilité locale} est la volatilité instantanée en fonction du niveau de l'indice et du temps, compatible avec toute la surface \cite{dupire}.
 
-En français simple : la volatilité implicite d'une option donne \textbf{un seul chiffre moyen} pour toute sa durée de vie. La volatilité locale \textbf{découpe ce risque} : elle indique le risque que le marché attend \textbf{à chaque date future et pour chaque niveau possible de l'indice}. Par exemple, elle peut dire que le risque serait plus fort si l'indice tombait à 4\,000 points dans trois mois que s'il restait à 5\,000. Une image : la volatilité implicite est la \emph{vitesse moyenne} d'un trajet, la volatilité locale est la \emph{vitesse à chaque endroit} du trajet. On la calcule à partir de toute la surface avec la formule de Dupire (équation~\ref{eq:dupire}). Elle n'est pas encore construite dans le projet (section~\ref{sec:variables}).
+En français simple : la volatilité implicite d'une option donne \textbf{un seul chiffre moyen} pour toute sa durée de vie. La volatilité locale \textbf{découpe ce risque} : elle indique le risque que le marché attend \textbf{à chaque date future et pour chaque niveau possible de l'indice}. Par exemple, elle peut dire que le risque serait plus fort si l'indice tombait à 4\,000 points dans trois mois que s'il restait à 5\,000. Une image : la volatilité implicite est la \emph{vitesse moyenne} d'un trajet, la volatilité locale est la \emph{vitesse à chaque endroit} du trajet. On la calcule à partir de toute la surface avec la formule de Dupire (équation~\ref{eq:dupire}). Je la calcule à partir de la surface Bloomberg (section~\ref{sec:locale}).
 \end{itemize}
 
 \textbf{Vocabulaire des données et du machine learning.}
 \begin{itemize}
 \item \textbf{Cible} (en anglais \emph{target}) : ce que le modèle doit prévoir. Ici, c'est \textbf{le risque futur du portefeuille}, c'est-à-dire la volatilité du panier 60\,\% SPY / 40\,\% IEF pendant les 21 séances (environ un mois) qui suivent la date. On ne la connaît qu'après coup, 22 séances plus tard. Formule détaillée en section~\ref{sec:variables}.
-\item \textbf{Variables explicatives} : les informations connues à la date, que le modèle utilise pour prévoir la cible. Ici, les 13 \textbf{variables historiques A} (le risque et les rendements passés) et les \textbf{indicateurs B} tirés des options (section~\ref{sec:probleme}).
+\item \textbf{Variables explicatives} : les informations connues à la date, que le modèle utilise pour prévoir la cible. Ici, les 13 \textbf{variables historiques A} (le risque et les rendements passés) les \textbf{indicateurs B} tirés des options et la \textbf{volatilité locale C} (section~\ref{sec:probleme}).
 \item \textbf{Séance} : jour d'ouverture de la Bourse. \textbf{Jours calendaires} : tous les jours, week-ends compris.
 \item \textbf{Médiane, quantile (ou percentile) à 5\,\% / 95\,\%} : valeur qui laisse 50\,\% (5\,\%, 95\,\%) des observations en dessous. L'\textbf{écart interquartile} est l'écart entre les quantiles à 25\,\% et 75\,\%.
 \item \textbf{Rétropolé} : reconstruit après coup pour des dates antérieures au lancement d'un indice.
@@ -201,7 +206,7 @@ Le cours fixe sept étapes \cite{cours6}. J'ai couvert la collecte des données 
 1. Définition du problème & \fait & section~\ref{sec:probleme} \\
 \rowcolor{gris}2. Exploration des données & \afaire & notebook à créer, section~\ref{sec:suite} \\
 3. Prétraitement & \fait & \fic{portefeuille/pretraitement/}, section~\ref{sec:pretraitement} \\
-\rowcolor{gris}4. Construction des variables & \enpartie{} : A, cible, B & \fic{portefeuille/features/}, section~\ref{sec:variables} \\
+\rowcolor{gris}4. Construction des variables & \fait{} : A, cible, B, C & \fic{portefeuille/features/}, section~\ref{sec:variables} \\
 5 à 7. Modèles, évaluation, interprétation & \afaire & section~\ref{sec:suite} \\
 \end{tabularx}
 
@@ -247,8 +252,8 @@ On choisit donc la part investie pour que le risque total tombe pile sur l'objec
 \begin{tabularx}{\linewidth}{@{}>{\leavevmode\bfseries\color{marine}}p{0.5cm} Y L{4.3cm} L{3.2cm}@{}}
 \rowcolor{marine} & \entete{Ce que le modèle reçoit} & \entete{Colonnes et fichier} & \entete{Question posée} \\
 A & \textbf{le passé seul} : risque, rendement et corrélation récents de SPY, d'IEF et du panier (13 variables) & les 13 colonnes de \fic{variables\_A.csv} ; 2012–2025 & le passé suffit-il à prévoir le risque ? \\
-\rowcolor{gris}B & \textbf{A + ce que disent les options}, de deux façons : les indices de Cboe (VIX9D, VIX, VIX3M, VIX6M, SKEW), ou les 8 indicateurs tirés de la surface (6 IV, skew, pente) & \fic{donnees\_quotidiennes.csv} ; indices dès 2012 (2013 pour VIX9D et VIX6M), surface 2017–2023 seulement & les options apportent-elles une information en plus du passé ? \\
-C & \textbf{B + la volatilité locale}, tirée de la même surface par la formule de Dupire \cite{dupire} & pas encore construite (section~\ref{sec:variables}) & une lecture plus fine des options apporte-t-elle encore plus ? \\
+\rowcolor{gris}B & \textbf{A + ce que disent les options}, de deux façons : les 8 indicateurs tirés de la surface Bloomberg (6 IV, skew, pente), ou les indices de Cboe (VIX9D, VIX, VIX3M, VIX6M, SKEW) & \fic{variables\_B.csv} (privé), 2012–2025 ; indices Cboe dans \fic{donnees\_quotidiennes.csv} ; surface universitaire 2017–2023 en contrôle & les options apportent-elles une information en plus du passé ? \\
+C & \textbf{B + la volatilité locale}, tirée de la même surface par la formule de Dupire \cite{dupire} & \fic{variables\_C.csv} (privé) ; surface Bloomberg 2012–2025 (section~\ref{sec:locale}) & une lecture plus fine des options apporte-t-elle encore plus ? \\
 \end{tabularx}}
 
 \textbf{Pourquoi « même cible, mêmes dates, mêmes modèles ».} C'est le principe d'une expérience contrôlée : on ne change qu'une seule chose à la fois, les informations données au modèle. La cible à prévoir, les dates d'apprentissage et de test, les modèles (Ridge, forêt aléatoire, XGBoost) et la règle d'allocation restent identiques. Si B prévoit mieux que A, la différence ne peut alors venir que de l'information des options, et pas d'une période plus facile ou d'un modèle différent.
@@ -275,9 +280,9 @@ Sur nos données, le VIX surestime le risque des 21 séances suivantes \textbf{8
 \begin{tikzpicture}[font=\small,
   etape/.style={rectangle,rounded corners=3pt,draw=#1,fill=#1!8,line width=0.8pt,align=center,minimum height=1.25cm,text width=3.15cm},
   fleche/.style={-{Stealth[length=2.6mm]},line width=1pt,color=discret}]
-  \node[etape=marine] (brut) {\textcolor{marine}{\faIcon{cloud-download-alt}}\ \textbf{Collecte}\\29 sources\\\fic{data/brut/}};
+  \node[etape=marine] (brut) {\textcolor{marine}{\faIcon{cloud-download-alt}}\ \textbf{Collecte}\\29 sources + Bloomberg\\\fic{data/brut/}};
   \node[etape=sarcelle,right=0.8cm of brut] (pre) {\textcolor{sarcelle}{\faIcon{filter}}\ \textbf{Prétraitement}\\étape 3 : lire, valider,\\aligner sur le NYSE};
-  \node[etape=sarcelle,right=0.8cm of pre] (var) {\textcolor{sarcelle}{\faIcon{cogs}}\ \textbf{Variables} (étape 4)\\13 variables A, la cible,\\8 indicateurs B};
+  \node[etape=sarcelle,right=0.8cm of pre] (var) {\textcolor{sarcelle}{\faIcon{cogs}}\ \textbf{Variables} (étape 4)\\A, la cible,\\B et C};
   \node[etape=vert,right=0.8cm of var] (out) {\textcolor{vert}{\faIcon{table}}\ \textbf{Fichiers prêts}\\\fic{data/prepare/}};
   \node[etape=orange,below=0.45cm of pre,text width=7.9cm,minimum height=0.85cm,xshift=2.05cm] (ctl) {\textcolor{orange}{\faIcon{search}}\ \textbf{Contrôles} : couverture, émetteurs, surface, contrats de 2022 $\rightarrow$ \fic{data/controles/}};
   \draw[fleche] (brut) -- (pre); \draw[fleche] (pre) -- (var); \draw[fleche] (var) -- (out);
@@ -294,8 +299,8 @@ Sur nos données, le VIX surestime le risque des 21 séances suivantes \textbf{8
 \item \textbf{Aucune imputation.} Une valeur manquante reste vide (NaN) ; une anomalie de structure arrête le programme.
 \end{itemize}
 
-\subsection{Les 29 sources}
-J'ai téléchargé \textbf{29 fichiers}, qui viennent de \textbf{8 fournisseurs}. Le Trésor américain publie un fichier par année, d'où 15 fichiers pour 2011–2025. Attention : la plupart de ces fichiers ne contiennent pas des prix bruts mais des \textbf{chiffres déjà calculés par le fournisseur} ; la section~\ref{sec:fournisseurs} explique ces calculs.
+\subsection{Les sources : 29 fichiers publics et 4 classeurs Bloomberg}
+J'ai téléchargé \textbf{29 fichiers publics}, qui viennent de \textbf{8 fournisseurs}. S'y ajoutent \textbf{4 classeurs Bloomberg}, extraits par un membre du groupe et \textbf{privés} (dernière ligne du tableau). Le Trésor américain publie un fichier par année, d'où 15 fichiers pour 2011–2025. Attention : la plupart de ces fichiers ne contiennent pas des prix bruts mais des \textbf{chiffres déjà calculés par le fournisseur} ; la section~\ref{sec:fournisseurs} explique ces calculs.
 
 {\small
 \begin{longtable}{@{}L{2.75cm} L{6.15cm} L{4.6cm} L{2.5cm}@{}}
@@ -306,9 +311,10 @@ J'ai téléchargé \textbf{29 fichiers}, qui viennent de \textbf{8 fournisseurs}
 \textbf{Cboe} \cite{cboevix,cboeskew} (5) & La Bourse d'options de Chicago. Elle calcule et publie le VIX9D, le VIX, le VIX3M et le VIX6M (le risque attendu par les options sur 9 jours, 30 jours, 3 mois et 6 mois) ainsi que le SKEW (le prix de la protection contre un krach). & Variables B sur toute la période. & 3\,520 séances ; 3\,516 pour le SKEW \\
 \rowcolor{gris}\textbf{Trésor américain} \cite{treasury} (15) & Taux d'intérêt officiels des bons du Trésor à 4, 8, 13, 26 et 52 semaines, un fichier par année. & Rémunérer le cash du portefeuille ; actualiser les prix des options. & 3\,494 séances \\
 \textbf{Kenneth French} \cite{french} (1) & Base de données d'un professeur de finance américain (Dartmouth), très utilisée en recherche. Rendement quotidien du cash, mais arrondi. & Comparaison seulement ; remplacé par le Trésor (section~\ref{sec:cash}). & 3\,520 séances \\
-\rowcolor{gris}\textbf{Surface universitaire} \cite{dusbaja} (1) & Grille de volatilités implicites du S\&P~500 publiée par des chercheurs : chaque jour, 32 prix d'exercice (de 80 à 120\,\% du cours) × 16 échéances (de 7 à 365 jours). Construite et lissée par les auteurs à partir des données d'OptionsDX, un fournisseur commercial \cite{optionsdx}. & Variables B détaillées : les 8 indicateurs de la surface. & 1\,740 séances, 2017–2023 seulement \\
+\rowcolor{gris}\textbf{Surface universitaire} \cite{dusbaja} (1) & Grille de volatilités implicites du S\&P~500 publiée par des chercheurs : chaque jour, 32 prix d'exercice (de 80 à 120\,\% du cours) × 16 échéances (de 7 à 365 jours). Construite et lissée par les auteurs à partir des données d'OptionsDX, un fournisseur commercial \cite{optionsdx}. & \textbf{Contrôle} de B : les mêmes 8 indicateurs, calculés sur une autre source. & 1\,740 séances, 2017–2023 seulement \\
 \textbf{HistoricalData.net} \cite{histdata} (1) & Échantillon gratuit de vraies cotations d'options sur le S\&P~500, contrat par contrat : prix d'achat, prix de vente, volatilité implicite et indicateur de qualité. 2,5 millions de lignes. & Vérifier que la surface universitaire est juste (section~\ref{sec:controles}). & 127 séances, second semestre 2022 \\
 \rowcolor{gris}\textbf{Kam Hamidieh} \cite{hamidieh} (1) & Deux variables calculées par un chercheur à partir des options SPXW de 1 à 60 jours. \textbf{Asymétrie moyenne du sourire} : volatilité implicite des calls hors de la monnaie moins celle des puts hors de la monnaie ; elle est négative, car les puts qui protègent contre une baisse coûtent plus cher. \textbf{Prix moyen d'un straddle} (un call et un put à la monnaie achetés ensemble), rapporté au cours de l'indice : plus il est cher, plus le marché attend de fortes variations. & Vérification seulement : ses définitions ne sont pas les nôtres. & 2\,118 séances, 2017–2025 \\
+\textbf{Bloomberg} \cite{bbg} (4 classeurs, \textbf{privés}) & Terminal de données financières, utilisé à l'ESCP le 24/11/2026. Surface de volatilité implicite du SPX (5 échéances × 5 prix d'exercice), dividende estimé, contrats à terme ; taux Treasury, OIS et SOFR ; chaîne complète des options d'une séance ; IV par delta, OHLC du SPX, VIX1Y, VVIX ; prix de vraies options expirées (2015–2025). Diffusion interdite : hors du dépôt public. & \textbf{Variables B} (source principale) et \textbf{variables C} (volatilité locale) ; contrôles (section~\ref{sec:locale}). & 3\,627 séances, août 2011–2025 (options expirées : 2015–2025) \\
 \end{longtable}}
 
 \subsection{Comment les fournisseurs calculent leurs données}\label{sec:fournisseurs}
@@ -405,6 +411,13 @@ P^{bill}=100\left(1-\frac{d}{100}\,\frac{n}{360}\right),\qquad y=100\times\frac{
 
   En résumé, le skew mesure la \emph{forme} du sourire, le straddle sa \emph{hauteur} au centre.
   Ses données semblent relevées à 15\,h\,45 (suffixe « 1545 » des colonnes), sans que ce soit documenté.
+\item \textbf{Bloomberg} \cite{bbg}. \emph{En clair} : Bloomberg calcule ses volatilités implicites avec son moteur \textbf{LIVE} (\emph{Listed Implied Volatility Engine}), à partir des options cotées du jour. D'après la description des champs relevée au terminal :
+  \begin{itemize}
+  \item le champ \fic{30DAY\_IMPVOL\_95.0\%MNY\_DF} est l'IV à \textbf{30 jours exactement} et à \textbf{95\,\% du cours} ($m=K/S$). Aucune option n'a précisément ces caractéristiques : Bloomberg interpole entre les options cotées qui les encadrent (\emph{maturité constante}) ;
+  \item les valeurs sont de \textbf{fin de journée}, sans heure précise ;
+  \item \fic{IDX\_EST\_DVD\_YLD} est le rendement de dividende estimé du S\&P~500 sur 12 mois, en \% ;
+  \item la méthode exacte de lissage et d'interpolation est propriétaire : on ne peut que la contrôler de l'extérieur, ce que fait la section~\ref{sec:locale}.
+  \end{itemize}
 \end{itemize}
 \end{fournisseur}
 
@@ -418,17 +431,18 @@ portefeuille/            paquet Python
   config.py              toutes les hypothèses
   utilitaires.py         écritures sûres, SHA-256
   collecte/              sources, telechargement
-  pretraitement/         marches, taux,
-                         options, emetteurs
+  pretraitement/         marches, taux, options,
+                         emetteurs, bloomberg
   features/              historiques, cible,
-                         implicites
+                         implicites, locale
   controles/             couverture, emetteurs,
                          surface
   controle_surface/      chaines, termes
 scripts/                 01_collecte.py
                          02_preparation.py
                          03_controle_surface.py
-tests/test_donnees.py    7 tests sans réseau
+                         04_surface_bloomberg.py
+tests/                   17 tests sans réseau
 tests/audit_donnees.py   48 contrôles d'audit
 \end{verbatim}
 \end{tcolorbox}
@@ -447,10 +461,11 @@ tests/audit_donnees.py   48 contrôles d'audit
   title={\faIcon{terminal}\enspace Reproduire tout le travail (PowerShell, à la racine du projet, Python 3.12)},fonttitle=\small\bfseries,coltitle=marine,colbacktitle=marine!4,titlerule=0pt,bottomtitle=0pt]
 \begin{verbatim}
 py -3.12 -m venv .venv ; .venv\Scripts\python.exe -m pip install -r requirements.txt
-.venv\Scripts\python.exe -m unittest discover -s tests   # 7 tests unitaires
+.venv\Scripts\python.exe -m unittest discover -s tests   # 17 tests unitaires
 .venv\Scripts\python.exe scripts/01_collecte.py           # télécharge les sources manquantes
 .venv\Scripts\python.exe scripts/02_preparation.py        # étapes 3 et 4, contrôles
 .venv\Scripts\python.exe scripts/03_controle_surface.py    # contrôle par les contrats 2022
+.venv\Scripts\python.exe scripts/04_surface_bloomberg.py   # B et C, classeurs Bloomberg privés
 .venv\Scripts\python.exe tests/audit_donnees.py           # audit indépendant : 48 contrôles
 \end{verbatim}
 \end{tcolorbox}
@@ -524,6 +539,8 @@ Un \textbf{jour sans valeur} est un jour de Bourse où la source n'a rien publi�
 \item \textbf{Surface} : les 10 valeurs écartées tombent les mêmes fêtes de 2022 et le 05/12/2018, jour des funérailles de George H. W. Bush. Les 20 jours sans valeur manquent dans le fichier des auteurs, sans explication de leur part.
 \item \textbf{SKEW} : 4 jours isolés que Cboe n'a pas publiés.
 \end{itemize}
+
+\textbf{Surface Bloomberg.} La lecture (\fic{pretraitement/bloomberg.py}) s'arrête si l'un de ces points n'est pas respecté : les 25 champs portent exactement les noms attendus ; les dates de chaque onglet sont \textbf{exactement les 3\,627 séances du NYSE} d'août 2011 à décembre 2025 ; aucune IV ne manque, et toutes sont entre 1 et 200\,\%. Le dividende estimé, publié aussi certains jours fériés, est rangé sur les seules séances. Les rejets de journées douteuses viennent ensuite, aux sections~\ref{sec:implicites} et~\ref{sec:locale}.
 
 % ================================================================
 \section{Construction des variables (étape 4)}\label{sec:variables}
@@ -606,7 +623,7 @@ Cela fait 3 variances du panier et 5 familles $\times$ 2 fenêtres, soit 13 vari
 \subsection{La cible : volatilité réalisée des 21 séances suivantes}
 La cible est \textbf{la bonne réponse que le modèle doit apprendre à deviner}. Elle répond à la question : \emph{quel risque le portefeuille va-t-il réellement subir pendant le mois qui suit ?} Son rôle se lit en trois temps :
 \begin{itemize}[nosep,leftmargin=*]
-  \item \textbf{le jour $s$}, le modèle ne voit que le passé (variables A, et B quand elles existent) et en tire une \textbf{prévision} $\widehat\sigma_s$, qui fixe la part investie \eqref{eq:allocation} ;
+  \item \textbf{le jour $s$}, le modèle ne voit que le passé (variables A, B et C) et en tire une \textbf{prévision} $\widehat\sigma_s$, qui fixe la part investie \eqref{eq:allocation} ;
   \item \textbf{22 séances plus tard}, le mois est passé : on connaît la \textbf{vraie valeur} $\sigma_s$, la cible ;
   \item à l'\textbf{entraînement}, le modèle règle ses paramètres pour que $\widehat\sigma_s$ colle au mieux à $\sigma_s$. À l'\textbf{évaluation}, sur des dates qu'il n'a jamais vues, on mesure l'écart entre les deux avec les scores MAE, RMSE et QLIKE \eqref{eq:metriques}.
 \end{itemize}
@@ -661,12 +678,17 @@ Contrairement aux variables A, on ne retire pas la moyenne des rendements avant 
 {\footnotesize\color{discret}Figure 1 — Cible et VIX, moyennes mensuelles 2012–2025, en \% annuel (données de \fic{data/prepare/}, script \fic{docs/latex/generer\_figures.py}). Le jour même, le VIX vaut en médiane 2,3 fois la cible.}
 \end{center}
 
-\subsection{Indicateurs implicites B (surface, 2017–2023)}
+\subsection{Indicateurs implicites B (surface Bloomberg, 2012–2025)}\label{sec:implicites}
 \textbf{Ce que l'on veut.} Les variables B résument en 8 chiffres ce que \textbf{les prix des options sur le S\&P~500 disent du risque à venir} : le niveau de risque attendu (IV), le prix de la protection contre la baisse (skew) et l'inquiétude à court terme comparée au moyen terme (pente).
 
-\textbf{Ce que l'on a.} Pour chaque jour de 2017 à 2023, la surface (section~\ref{sec:donnees}) est un tableau de volatilités implicites de \textbf{32 lignes} (prix d'exercice de 80\,\% à 120\,\% du cours, par pas d'environ 1,3\,\%) et \textbf{16 colonnes} (échéances de 7 à 365 jours, de plus en plus espacées : 7, 9, 12, 15, 20, 26, 34, 44, 58\,… jours).
+\textbf{Deux sources, deux rôles.}
+\begin{itemize}[nosep,leftmargin=*]
+  \item \textbf{La surface Bloomberg, source principale.} Chaque séance de 2012 à 2025 (3\,518 après contrôle), une grille de \textbf{5 échéances} (30, 60, 91, 182, 365 jours) et \textbf{5 prix d'exercice} (90 à 110\,\% du cours), présentée en détail avec C (section~\ref{sec:locale}). Les points voulus (30 et 60 jours ; 95, 100 et 105\,\%) sont \textbf{exactement dans la grille} : on les lit directement, sans interpolation. Fichier \fic{data/prepare/variables\_B.csv}, privé.
+  \item \textbf{La surface universitaire, source de contrôle.} Une grille de 32 prix d'exercice (80 à 120\,\% du cours) et 16 échéances (7 à 365 jours), mais seulement de 2017 à 2023 (section~\ref{sec:donnees}). Ses 8 indicateurs restent dans \fic{donnees\_quotidiennes.csv}, public : ils servent à vérifier Bloomberg, et permettent de travailler sans le fichier privé.
+\end{itemize}
+\textbf{Pourquoi ce choix.} Avec Bloomberg, B couvre \textbf{toute la période}, comme A : un modèle A~+~B peut apprendre sur 2012–2019 (2\,012 séances) et être testé à partir de 2020, avec le même découpage que A. Avec la surface universitaire, l'apprentissage commençait en 2017. Enfin, B et C lisent alors les mêmes prix d'options : seule la méthode change, et leur comparaison est juste.
 
-\textbf{Le problème.} Les points qui nous intéressent (95\,\%, 100\,\% et 105\,\% du cours ; 30 et 60 jours) \textbf{ne sont pas dans le tableau}. Par exemple, 95\,\% tombe entre les lignes 94,2\,\% et 95,5\,\%, et 30 jours entre les colonnes 26 et 34 jours. On calcule donc la valeur entre deux cases voisines, en deux temps : d'abord entre deux prix d'exercice \eqref{eq:interpm}, puis entre deux échéances \eqref{eq:interpT}. Chaque jour est traité seul, sans aucune information d'un autre jour : aucune fuite du futur n'est possible.
+\textbf{Le calcul, sur la surface universitaire.} Ses points ne tombent pas sur les niveaux voulus : 95\,\% est entre les lignes 94,2\,\% et 95,5\,\%, et 30 jours entre les colonnes 26 et 34 jours. On interpole donc entre deux cases voisines, d'abord entre deux prix d'exercice \eqref{eq:interpm}, puis entre deux échéances \eqref{eq:interpT}. Le même code, appliqué à la grille Bloomberg, retombe exactement sur ses nœuds. Chaque jour est traité seul : aucune fuite du futur n'est possible.
 
 \begin{formule}{Interpolation de la surface et indicateurs implicites}
 \begin{equation}\label{eq:interpm}
@@ -681,7 +703,7 @@ w(T)=\sigma^2(T)\,T,\qquad w(T^\star)=w(T_1)+\mu\,\bigl(w(T_2)-w(T_1)\bigr),\qua
 \notation{$K,\ S$}{prix d'exercice de l'option et cours du S\&P~500 le jour de l'observation (\emph{spot})}
 \notation{$m=K/S$}{\textbf{prix d'exercice relatif} (\emph{moneyness}) : 0,95 = 5\,\% sous le cours (put protecteur), 1 = au cours (à la monnaie), 1,05 = 5\,\% au-dessus}
 \notation{$m^\star;\ m_1,m_2$}{niveau recherché (0,95, 1 ou 1,05) ; les deux lignes du tableau juste en dessous et juste au-dessus}
-\notation{$\lambda$}{\textbf{poids} donné à la ligne du dessus, entre 0 et 1 : plus $m^\star$ est proche de $m_2$, plus $\lambda$ est proche de 1}
+\notation{$\lambda$}{\textbf{poids} donné à la ligne du dessus, entre 0 et 1 : plus $m^\star$ est proche de $m_2$, plus $\lambda$ est proche de 1 ($\lambda=1$ quand $m^\star$ est sur la grille)}
 \notation{$T^\star;\ T_1,T_2;\ \mu$}{échéance recherchée (30 ou 60 jours calendaires) ; les deux colonnes qui l'encadrent ; poids donné à $T_2$, comme $\lambda$}
 \notation{$\sigma(m;T)$}{\textbf{volatilité implicite} au niveau $m$ et à l'échéance $T$, en \% annuel}
 \notation{$\sigma^2$}{on mélange les \textbf{carrés} des volatilités (des variances), pas les volatilités elles-mêmes : c'est la variance qui s'additionne proprement}
@@ -690,11 +712,12 @@ w(T)=\sigma^2(T)\,T,\qquad w(T^\star)=w(T_1)+\mu\,\bigl(w(T_2)-w(T_1)\bigr),\qua
 \notation{$\mathrm{pente}_{60/30}$}{\textbf{pente de la structure par terme} au cours, en points : positive, le marché craint plus le moyen terme (normal) ; négative, il craint surtout les jours qui viennent (crise)}
 \end{formule}
 
-\textbf{Exemple du 1\textsuperscript{er} juillet 2022, calcul de $\sigma(0{,}95;30)$.}
+\textbf{Exemple du 1\textsuperscript{er} juillet 2022, calcul de $\sigma(0{,}95;30)$ sur la surface universitaire.}
 \begin{enumerate}[nosep,leftmargin=*]
   \item \emph{Entre les deux prix d'exercice.} $m_1=94{,}19\,\%$ et $m_2=95{,}48\,\%$, donc $\lambda=(95-94{,}19)/(95{,}48-94{,}19)=0{,}625$. À 26 jours, les IV du tableau sont 28,26\,\% et 27,39\,\% : $\sigma^2=0{,}375\times28{,}26^2+0{,}625\times27{,}39^2$, soit $\sigma=27{,}72\,\%$. À 34 jours, de même : $27{,}67\,\%$.
   \item \emph{Entre les deux échéances.} $w(26{,}15)=27{,}72^2\times26{,}15=20\,095$ et $w(34{,}04)=27{,}67^2\times34{,}04=26\,066$. $\mu=(30-26{,}15)/(34{,}04-26{,}15)=0{,}488$, donc $w(30)=20\,095+0{,}488\times(26\,066-20\,095)=23\,009$ et $\sigma=\sqrt{23\,009/30}=\textbf{27,69\,\%}$.
   \item \emph{Indicateurs du jour.} L'IV au cours vaut 24,44\,\% : le skew vaut $27{,}69-24{,}44=\textbf{3,25 points}$. À 60 jours, l'IV au cours vaut 24,72\,\%, d'où une pente de \textbf{+0,28 point}. Le VIX du jour vaut 26,7.
+  \item \emph{Même jour sur Bloomberg}, lu directement : 27,33\,\% à 95\,\%, 24,52\,\% au cours, donc un skew de \textbf{2,80 points} et une pente de \textbf{+0,23 point}. Les deux sources sont proches ; l'écart de skew (0,45 point) est de l'ordre de leur écart habituel.
 \end{enumerate}
 
 {\small
@@ -707,58 +730,159 @@ w(T)=\sigma^2(T)\,T,\qquad w(T^\star)=w(T_1)+\mu\,\bigl(w(T_2)-w(T_1)\bigr),\qua
 \fic{skew\_30j\_points} & asymétrie du sourire à 30 jours & \eqref{eq:skewpente} \\
 \rowcolor{gris}\fic{pente\_60j\_30j\_points} & pente de la structure par terme à la monnaie & \eqref{eq:skewpente} \\
 \end{tabularx}}
+Les colonnes ont \textbf{les mêmes noms} dans \fic{variables\_B.csv} (Bloomberg) et dans \fic{donnees\_quotidiennes.csv} (universitaire) : un notebook passe d'une source à l'autre en changeant seulement le fichier lu.
 
-\textbf{Ce que disent les chiffres} (1\,734 séances complètes, 2017–2023, après le contrôle de qualité de la section~\ref{sec:controles}).
+\textbf{Contrôle de qualité de Bloomberg.} On applique les mêmes règles qu'à la surface universitaire (section~\ref{sec:controles}) : une journée est rejetée si l'IV au cours dépasse le VIX de plus de 5 points, ou si le sourire est plat (moins de 2 points entre 90 et 100\,\%). Deux journées tombent, toutes deux en 2022 : le \textbf{20 septembre} (IV à 30 jours 20 points au-dessus du VIX) et le \textbf{27 octobre} (sourire plat, 0,78 point, contre au moins 2,97 tous les autres jours). Elles sont vidées dans B et dans C, sans remplissage.
+
+\textbf{Ce que disent les chiffres} (Bloomberg, 3\,518 séances, 2012–2025).
 \begin{itemize}[nosep,leftmargin=*]
-  \item \textbf{Skew} : 4,9 points en médiane, toujours positif (de 0,25 à 7,2). La protection contre la baisse coûte donc toujours plus cher que l'option au cours : c'est le « sourire en pente » typique des actions.
-  \item \textbf{Pente} : 0,9 point en médiane. Elle est négative 13,7\,\% du temps, surtout en 2018, 2020 et 2022 (VIX moyen de 31 ces jours-là, contre 17 sinon), et descend jusqu'à $-9{,}1$ points le 12 mars 2020 : ce jour-là, le marché redoutait bien plus les 30 jours à venir que les 60.
-  \item \textbf{VIX et IV au cours} : ils montent et baissent ensemble (corrélation des niveaux de 0,99), mais le VIX est en moyenne \textbf{3,6 points plus haut}. Le VIX mélange les options de tous les prix d'exercice \eqref{eq:vix}, y compris les puts éloignés, plus chers ; $\sigma(1;30)$ n'utilise que l'option au cours. Les deux ne sont donc pas interchangeables, et les garder tous les deux renseigne aussi sur le sourire.
-  \item \textbf{Vérification} : j'ai recalculé trois de ces IV directement depuis le tableau brut, avec un programme écrit séparément. L'écart est inférieur à $10^{-5}$ point : le calcul est fiable.
+  \item \textbf{Accord des deux sources} (1\,732 séances communes, 2017–2023) : à 30 jours, l'écart médian vaut 0,28 point au cours, 0,59 à 95\,\% et 0,29 à 105\,\% ; corrélations de 0,997 à 0,998 (0,999 à 60 jours). Bloomberg est un peu plus haut à 95\,\% (+0,58 point), donc son skew aussi (+0,40 point).
+  \item \textbf{Skew} : 4,8 points en médiane, toujours positif (de 1,5 à 8,3). La protection contre la baisse coûte donc toujours plus cher que l'option au cours : c'est le « sourire en pente » typique des actions.
+  \item \textbf{Pente} : 0,8 point en médiane. Elle est négative 15,9\,\% du temps, surtout en 2022, 2020, 2018 et 2025 (VIX moyen de 26 ces jours-là, contre 16 sinon), et descend jusqu'à $-8{,}8$ points le 12 mars 2020 : ce jour-là, le marché redoutait bien plus les 30 jours à venir que les 60.
+  \item \textbf{VIX et IV au cours} : ils montent et baissent ensemble (corrélation des niveaux de 0,99), mais le VIX est en moyenne \textbf{3,0 points plus haut}. Le VIX mélange les options de tous les prix d'exercice \eqref{eq:vix}, y compris les puts éloignés, plus chers ; $\sigma(1;30)$ n'utilise que l'option au cours. Les deux ne sont donc pas interchangeables, et les garder tous les deux renseigne aussi sur le sourire.
+  \item \textbf{Vérification} : sur la surface universitaire, j'ai recalculé trois IV directement depuis le tableau brut avec un programme écrit séparément (écart inférieur à $10^{-5}$ point). Sur Bloomberg, un test vérifie que le code lit exactement les nœuds de la grille.
 \end{itemize}
 
-\subsection{Ce qui n'est pas construit : la volatilité locale C}
-La volatilité implicite donne \textbf{un risque moyen} jusqu'à une échéance. La \textbf{volatilité locale} va plus loin : elle dit quel risque le marché attend \emph{à une date précise} et \emph{si l'indice se trouve à un niveau précis} (par exemple : « dans 20 jours, si le S\&P~500 a baissé de 5\,\% »). On l'obtient à partir de la même surface, avec la formule de Dupire.
-\begin{attention}{Formule de Dupire et pourquoi je ne l'ai pas encore construite}
-\begin{equation}\label{eq:dupire}
-\sigma^2_{\mathrm{loc}}(T,K)=\frac{\partial_T C+(r-q)\,K\,\partial_K C+q\,C}{\tfrac12\,K^2\,\partial^2_{KK}C}
-\end{equation}
-\notation{$\sigma_{\mathrm{loc}}(T,K)$}{\textbf{volatilité locale} : risque attendu à la date $T$ si l'indice vaut alors $K$}
-\notation{$C(T,K)$}{prix, le jour de l'observation, d'un call européen d'échéance $T$ et de prix d'exercice $K$}
-\notation{$\partial_T,\ \partial_K,\ \partial^2_{KK}$}{dérivées : de combien le prix du call change si l'on allonge un peu l'échéance ($\partial_T$), si l'on monte un peu le prix d'exercice ($\partial_K$), et comment ce changement varie lui-même ($\partial^2_{KK}$, dérivée seconde)}
-\notation{$r,\ q$}{taux sans risque et rendement du dividende, supposés constants ici}
-\textbf{Pourquoi c'est difficile.} La formule \cite{dupire} dérive les prix des options \emph{deux fois}. Or chaque dérivée grossit les erreurs : une petite erreur sur un prix devient une grosse erreur sur la volatilité locale. Il faut donc une surface très propre et sans arbitrage, en pratique un sourire SVI ajusté à chaque échéance \cite{gatheraljacquier}.
+\subsection{Volatilité locale C (surface Bloomberg, 2012–2025)}\label{sec:locale}
+\textbf{L'idée en français simple.} Pensez à un trajet en voiture de 30 minutes. La \textbf{volatilité implicite} à 30 jours ressemble à la \emph{vitesse moyenne} du trajet : un seul chiffre pour toute la durée. La \textbf{volatilité locale} ressemble à la \emph{vitesse à chaque endroit de la route} : elle dit quel risque le marché attend \emph{à une date précise} et \emph{si l'indice se trouve à un niveau précis} (par exemple : « dans 30 jours, si le S\&P~500 a baissé de 5\,\% »). Bruno Dupire a montré en 1994 qu'on peut la déduire de toute la surface des volatilités implicites \cite{dupire}. Elle sert ici à tester une question : \emph{une lecture plus fine des options aide-t-elle à prévoir le risque du panier ?} (ensemble C, section~\ref{sec:probleme}).
 
-\textbf{Ce qu'il faut, ce que nous avons, ce qui manque.}
+\textbf{Les données : quatre classeurs Bloomberg.} La surface universitaire ne suffisait pas : 2017–2023 seulement, sans prix à terme ni heure. Un membre du groupe a donc extrait, le 24 novembre 2026 au terminal Bloomberg de l'ESCP (école de commerce partenaire), quatre classeurs rangés dans \fic{data/brut/bloomberg/} :
 
 {\small
-\begin{tabularx}{\linewidth}{@{}L{4.6cm} Y Y@{}}
-\rowcolor{marine}\entete{Il faut} & \entete{Nous avons} & \entete{Il manque} \\
-les prix bruts des options (achat et vente), pour beaucoup de prix d'exercice autour du cours & une surface déjà lissée et complétée par d'autres ; des prix bruts sur 6 mois (2022) & des prix bruts sur toute la période \\
-\rowcolor{gris}un long historique, idéalement 2012–2025 & la surface sur 2017–2023 & 2012–2016 et 2024–2025 \\
-le prix à terme de l'indice pour chaque échéance (il tient compte des taux et des dividendes) & estimé seulement sur l'échantillon 2022 & les prix à terme sur toute la période \\
-\rowcolor{gris}l'heure de chaque prix, pour prendre options et indice au même moment & aucune heure & des données horodatées \\
-une méthode stable : sourire SVI sans arbitrage, calcul des dérivées, rejet des jours instables & rien n'est codé & le code, faisable dès maintenant sur l'échantillon 2022 \\
+\begin{tabularx}{\linewidth}{@{}L{3.3cm} Y L{4.3cm}@{}}
+\rowcolor{marine}\entete{Onglet} & \entete{Contenu} & \entete{Usage dans le projet} \\
+\multicolumn{3}{@{}l}{\textbf{\fic{Bloomberg\_SPX.xlsx}}} \\
+\rowcolor{gris}\fic{IV\_30D} à \fic{IV\_12M} & IV du SPX à \textbf{5 échéances} (30, 60, 91, 182, 365 jours calendaires, à maturité constante) et \textbf{5 prix d'exercice} (90, 95, 100, 105, 110\,\% du cours, $m=K/S$), chaque séance du 01/08/2011 au 31/12/2025 & la surface de B et de C \\
+\fic{DIV\_\&\_FUTURES} & clôture du SPX, rendement de dividende estimé $q$ (\fic{IDX\_EST\_DVD\_YLD}), contrats à terme ES1 à ES4 & $q$ pour le prix à terme ; ES en contrôle \\
+\rowcolor{gris}\fic{NOTES\_METADONNEES} & conventions relevées sur le terminal : $K/S$, échéances constantes, fin de journée, moteur LIVE (options cotées) & hypothèses H8 et H12 \\
+\multicolumn{3}{@{}l}{\textbf{\fic{Bloomberg\_SPX\_Taux\_et\_Complements.xlsx}}} \\
+\rowcolor{gris}\fic{TAUX\_US\_TREASURY} & taux du Trésor à 1, 3, 6, 12 mois et 2 ans (\fic{USGG1M} à \fic{USGG2YR}) & contrôle de nos T-bills \\
+\fic{TAUX\_OIS\_SOFR} & Fed Funds, SOFR, swaps OIS à 1, 3, 6 et 12 mois & test de sensibilité du taux \\
+\rowcolor{gris}\fic{VOL\_INDICES\_\&\_REAL} & volatilité réalisée du SPX (30 à 260 jours), VIX, VIX3M, VIX6M, SKEW & contrôle de nos indices Cboe \\
+\fic{OPT\_CHAIN\_JOUR} & \textbf{toute la chaîne} des options SPX et SPXW du 24 novembre 2026, jour de l'extraction (8\,000 options : bid, ask, IV) & test du lissage (plus bas) \\
+\multicolumn{3}{@{}l}{\textbf{\fic{Bloomberg\_SPX\_Pack\_Complet.xlsx}}} \\
+\rowcolor{gris}\fic{IV\_DELTA\_25\_50}, \fic{IV\_DELTA\_10D} & IV par \emph{delta} (10, 25, 50) à 1 mois, 2 mois et long terme & non utilisé : voir ci-dessous \\
+\fic{SPX\_OHLC\_\&\_TR} & ouverture, plus haut, plus bas, clôture et volume du SPX ; indice dividendes réinvestis (SPXT) & piste : volatilité réalisée plus précise \\
+\rowcolor{gris}\fic{TAUX\_LONGS\_\&\_VVIX} & taux à 3, 5 et 10 ans ; OIS à 2 et 5 ans ; VIX9D, VIX1Y, VVIX (volatilité du VIX) & piste : variables de B supplémentaires \\
+\multicolumn{3}{@{}l}{\textbf{\fic{Bloomberg\_SPX\_Historique\_Options\_Rolls.xlsx}}} \\
+\rowcolor{gris}\fic{OPT\_2014\_2016} à \fic{OPT\_2023\_2025} & dernier prix négocié, chaque jour pendant environ 3 mois, de 6 vraies options SPX mensuelles par mois (puts à 90, 95, 100\,\%, calls à 100, 105, 110\,\% du cours) : 777 contrats de 2015 à 2025 (rien avant : Bloomberg ne les fournit plus) & contrôle de la surface (plus bas) \\
 \end{tabularx}}
 
-Ce qui manque surtout, ce sont \textbf{les données}. Voici précisément ce qu'il faut demander (à Bloomberg, ou à défaut à OptionMetrics ou Cboe DataShop) :
+\textbf{Pourquoi les IV par delta ne sont pas utilisées.} Le \emph{delta} repère une option par sa sensibilité au cours plutôt que par son prix d'exercice. Ces points auraient pu enrichir le sourire, mais :
+\begin{itemize}[nosep,leftmargin=*]
+  \item \textbf{à 1 mois, elles sont faussées} : Bloomberg semble lire le contrat qui expire, et l'IV chute les jours d'échéance mensuelle (3,6\,\% le 21 juillet 2017, contre 6,7\,\% sur la grille) ; 353 séances s'écartent de plus de 3 points de la grille ;
+  \item \textbf{à 2 mois, elles n'apportent presque rien} : fiables, mais elles tombent surtout \emph{à l'intérieur} de 90–110\,\%, donc n'élargissent guère le sourire ;
+  \item \textbf{leur convention n'est pas documentée} (« DFLT ») et elles s'écartent d'environ 0,4 point des champs en \% du cours : les mélanger rendrait les dérivées de Dupire plus bruitées.
+\end{itemize}
 
-{\small
-\begin{tabularx}{\linewidth}{@{}L{3.2cm} Y@{}}
-\rowcolor{marine}\entete{Donnée} & \entete{Détail précis} \\
-Quelles options & options européennes sur l'indice S\&P~500 cotées au Cboe : SPX (mensuelles, réglées le matin, AM) et SPXW (hebdomadaires, réglées le soir, PM), en indiquant pour chaque option de quel type elle est \\
-\rowcolor{gris}Quelle période & chaque séance de Bourse du 1\textsuperscript{er} août 2011 (période de démarrage des variables A) au 31 décembre 2025 \\
-Quand dans la journée & \textbf{une photo par jour à heure fixe}, par exemple 15 h 45 à New York (un quart d'heure avant la clôture), avec le niveau du SPX \textbf{à la même minute}. Notre échantillon 2022 n'a pas d'heure : la colonne existe mais elle est vide \\
-\rowcolor{gris}Pour chaque option & date et heure du prix ; SPX ou SPXW ; date d'échéance ; prix d'exercice ; call ou put ; \textbf{meilleur prix d'achat} (\emph{bid}) et \textbf{meilleur prix de vente} (\emph{ask}) ; volume du jour et nombre de contrats ouverts (\emph{open interest}), pour écarter les options trop peu échangées. L'IV calculée par le fournisseur est utile pour un contrôle, mais pas indispensable \\
-Quels prix d'exercice, quelles échéances & au moins de 70\,\% à 130\,\% du cours, et de 7 jours à 1 an ; surtout, \textbf{calls et puts aux mêmes prix d'exercice} : la parité call-put en déduit alors, pour chaque échéance, le prix à terme et le facteur d'actualisation (méthode déjà codée sur 2022) \\
-\rowcolor{gris}Taux et dividendes & la courbe des taux sans risque de 1 mois à 1 an, chaque jour (gratuite sur le site du Trésor américain), et si possible le rendement de dividende attendu du S\&P~500 : ils servent à vérifier les prix à terme tirés de la parité \\
-\end{tabularx}}
-
-Pour fixer l'ordre de grandeur : en 2022, une séance compte environ \textbf{19\,400 options} SPX et SPXW. Sur 2011–2025, cela fait plusieurs dizaines de millions de lignes, à prévoir dans un format compressé. Je conseille de ne construire C qu'une fois ces données obtenues. En attendant, on peut écrire et tester le code sur l'échantillon 2022.
+\begin{attention}{Quatre fichiers privés}
+Les conditions de Bloomberg interdisent de diffuser ces données. Les quatre classeurs, et tout ce qui en dérive (\fic{variables\_B.csv}, \fic{variables\_C.csv} et quatre fichiers de contrôle), restent \textbf{hors du dépôt public} : le \fic{.gitignore} les exclut, et il ne faut \textbf{jamais} les committer. Pour travailler sur B et C, demandez les classeurs à Maxime, qui les a extraits, par un canal privé (pas GitHub), placez-les dans \fic{data/brut/bloomberg/}, puis lancez \fic{scripts/04\_surface\_bloomberg.py}.
 \end{attention}
+
+\begin{valide}{Ce que j'ai vérifié sur ces données}
+\begin{itemize}[nosep,leftmargin=*]
+  \item \textbf{Complétude} : les 3\,627 séances de la Bourse de New York du 01/08/2011 au 31/12/2025 sont toutes présentes, sans case vide.
+  \item \textbf{Cohérence avec nos sources} : la clôture du SPX est quasi identique à celle de Yahoo (13 séances sur 3\,520 diffèrent de plus de 0,01 point) ; le VIX est identique à celui de Cboe ; les taux du Trésor de Bloomberg ne s'écartent de nos T-bills que de 0,015 point en médiane.
+  \item \textbf{Cohérence avec la surface universitaire} : à 30 jours au cours, l'IV Bloomberg ne s'écarte que de \textbf{0,28 point} en médiane de la surface universitaire (1\,732 séances communes, corrélation 0,998). Les deux sources racontent la même histoire.
+  \item \textbf{Cohérence avec de vrais contrats} : pour 777 vraies options SPX expirées (2015–2025), j'ai recalculé la volatilité implicite à partir de leur prix (formule de Black-Scholes) et je l'ai comparée à la surface Bloomberg, le même jour, au même prix d'exercice relatif et à la même échéance (de 30 à 91 jours). Sur 18\,230 comparaisons d'options hors de la monnaie, l'écart médian vaut \textbf{0,32 point} en valeur absolue (95\,\% sous 1,11 point), avec une surface un peu plus haute ($-0{,}22$ point en médiane) ; il reste entre 0,27 et 0,41 point chaque année, crises de 2020 et 2022 comprises. Le léger biais vient en partie de nos conventions : ces options mensuelles sont réglées le matin de l'échéance, et le prix à terme est approché. Écarter les prix répétés ou isolés ne change rien. En revanche, les écarts s'élargissent en crise (95\,\% sous 2 points en 2020 et 2022). Limite : le prix utilisé est le dernier prix négocié, pas forcément à la clôture ; un contrôle refait de façon indépendante donne les mêmes chiffres.
+  \item \textbf{Deux journées douteuses}, rejetées dans B et C : le 20 septembre 2022, Bloomberg donne 47,3\,\% à 30 jours contre 25,1\,\% à 60 jours, alors que le VIX vaut environ 27 ; le 27 octobre 2022, le sourire est plat (section~\ref{sec:implicites}).
+\end{itemize}
+\end{valide}
+
+\textbf{La méthode, en quatre étapes} (chaque jour est traité seul : aucune information d'un autre jour) :
+\begin{enumerate}[nosep,leftmargin=*]
+  \item \textbf{Le prix à terme} $F$ de chaque échéance, à partir du cours, des taux des T-bills et du dividende estimé \eqref{eq:lissage}. On repère alors chaque prix d'exercice par $y=\ln(K/F)$.
+  \item \textbf{Le risque cumulé} $w=\text{IV}^2\times T$ en chacun des 25 points de la grille.
+  \item \textbf{Le lissage} : pour chaque échéance, une parabole passe au plus près des 5 points du sourire. Elle donne la pente et la courbure du sourire sans suivre le bruit des cotations.
+  \item \textbf{La formule de Dupire} \eqref{eq:dupire}, appliquée à 30 et 60 jours, à 95, 100 et 105\,\% du cours.
+\end{enumerate}
+
+\begin{formule}{Volatilité locale de Dupire, écrite en variance totale (Gatheral)}
+\begin{equation}\label{eq:dupire}
+\sigma^2_{\mathrm{loc}}(K,T)=\frac{\partial_T C+(r-q)\,K\,\partial_K C+q\,C}{\tfrac12\,K^2\,\partial^2_{KK}C}
+=\frac{\partial_T w}{1-\frac{y}{w}\,\partial_y w+\frac14\Bigl(-\frac14-\frac1w+\frac{y^2}{w^2}\Bigr)(\partial_y w)^2+\frac12\,\partial^2_{yy}w}
+\end{equation}
+\begin{equation}\label{eq:lissage}
+F_T=S\,e^{(r_T-q)T},\qquad y=\ln\frac{K}{F_T},\qquad w(y,T)=\sigma^2(y,T)\,T\approx a_T\,y^2+b_T\,y+c_T
+\end{equation}
+\notation{$\sigma_{\mathrm{loc}}(K,T)$}{\textbf{volatilité locale} : risque attendu à la date $T$ si l'indice vaut alors $K$, en \% par an}
+\notation{$C(T,K)$}{prix d'un call européen d'échéance $T$ et de prix d'exercice $K$ : c'est la forme d'origine de Dupire. On utilise la forme de droite, écrite directement avec les IV \cite{gatheral}}
+\notation{$S,\ F_T$}{cours du SPX du jour, et \textbf{prix à terme} pour l'échéance $T$ (en années)}
+\notation{$r_T,\ q$}{taux sans risque continu, tiré des T-bills de 4 à 52 semaines du jour et interpolé selon la durée ; rendement de dividende estimé par Bloomberg}
+\notation{$y,\ w$}{$y$ : prix d'exercice mesuré par rapport au prix à terme, en logarithme ($y=0$ : au prix à terme) ; $w$ : \textbf{variance totale}, le risque cumulé jusqu'à l'échéance}
+\notation{$a_T,b_T,c_T$}{coefficients de la \textbf{parabole} ajustée pour l'échéance $T$ sur ses 5 points (moindres carrés)}
+\notation{$\partial_y w,\ \partial^2_{yy}w$}{pente et courbure du sourire, lues sur la parabole}
+\notation{$\partial_T w$}{de combien le risque cumulé augmente quand l'échéance s'allonge, à $y$ fixé. On le calcule par une différence : pour 30 jours, entre les échéances 30 et 60 ; pour 60 jours, entre 30 et 91. La « volatilité locale à 30 jours » décrit donc en fait le risque attendu \textbf{entre le 30\textsuperscript{e} et le 60\textsuperscript{e} jour}}
+\end{formule}
+\textbf{Comment la lire.} Le numérateur $\partial_T w$ est le risque « ajouté » par les derniers jours : c'est la partie \emph{dans le temps}. Le dénominateur corrige selon la forme du sourire : c'est la partie \emph{selon le niveau de l'indice}. Sans sourire et avec une IV identique à toutes les échéances, le dénominateur vaut 1 et $\sigma_{\mathrm{loc}}=$ IV : un test du code le vérifie.
+
+\textbf{Exemple du 1\textsuperscript{er} juillet 2022, à 30 jours.}
+\begin{enumerate}[nosep,leftmargin=*]
+  \item \emph{Prix à terme.} $r_{30}=1{,}29\,\%$ et $q=1{,}72\,\%$, donc $F_{30}=S\,e^{(0{,}0129-0{,}0172)\times30/365}=0{,}99965\,S$.
+  \item \emph{Au cours} ($K=S$, donc $y=\ln(1/0{,}99965)=0{,}00035$). La parabole de 30 jours donne $w=0{,}004916$, soit une IV lissée de 24,46\,\% (Bloomberg : 24,52\,\%). Celle de 60 jours donne, au même $y$, $w=0{,}010048$.
+  \item \emph{Partie « temps ».} $\partial_T w=(0{,}010048-0{,}004916)/(30/365)=0{,}0624$.
+  \item \emph{Partie « niveau ».} Le dénominateur vaut 0,995 : au cours, le sourire corrige peu. D'où $\sigma_{\mathrm{loc}}=\sqrt{0{,}0624/0{,}995}=\textbf{25,05\,\%}$.
+  \item \emph{À 95\,\% du cours}, $\partial_T w=0{,}0762$ et le dénominateur tombe à 0,815 : $\sigma_{\mathrm{loc}}=\textbf{30,58\,\%}$, pour une IV de 27,33\,\%.
+\end{enumerate}
+
+\begin{center}
+\begin{tikzpicture}[x=0.42cm,y=0.2cm,font=\footnotesize]
+\begin{scope}[shift={(-90,-15)}]
+  \foreach \y in {15,20,...,35} {\draw[gris!70!discret!25] (90,\y) -- (110,\y); \node[left,text=discret] at (90,\y) {\y\,\%};}
+  \foreach \x in {90,95,...,110} {\draw[discret] (\x,15) -- (\x,14.3); \node[below,text=discret] at (\x,14.5) {\x\,\%};}
+  \draw[discret] (90,15) -- (110,15);
+  \draw[discret,densely dotted] (100,15) -- (100,36);
+  \sourireiv{orange,line width=1pt}
+  \sourirevl{sarcelle,line width=1.3pt}
+  \pointsbloomberg{orange}
+  \node[anchor=north west,text=sarcelle,font=\footnotesize\bfseries] at (101,36) {\rule[2pt]{14pt}{1.4pt}\ volatilité locale (Dupire)};
+  \node[anchor=north west,text=orange,font=\footnotesize\bfseries] at (101,32.5) {\rule[2pt]{14pt}{1pt}\ IV lissée ; points : IV Bloomberg};
+\end{scope}
+\end{tikzpicture}\\[-2pt]
+{\footnotesize\color{discret}Figure 2 — Sourire implicite et sourire local à 30 jours, le 1\textsuperscript{er} juillet 2022, selon le prix d'exercice en \% du cours (script \fic{docs/latex/generer\_figures.py} ; source : Bloomberg L.P.). Le sourire local est environ deux fois plus penché.}
+\end{center}
+
+\textbf{La règle du double.} La figure le montre : autour du cours, la volatilité locale est environ \textbf{deux fois plus penchée} que l'IV. C'est un résultat connu \cite{gatheral}. L'IV est une moyenne des volatilités locales sur tous les chemins possibles de l'indice jusqu'à l'échéance ; une moyenne lisse les écarts, donc l'IV penche environ deux fois moins. Sur 2012–2025, le skew local vaut 8,9 points en médiane, contre 4,8 pour l'IV : 1,86 fois plus. La règle vaut surtout en temps calme ; en crise, le rapport baisse (1,6 le 16 mars 2020). Le calcul se comporte comme la théorie le prévoit.
+
+\textbf{Pourquoi une parabole ? Le test sur la chaîne complète.} Bloomberg ne donne que 5 points par échéance : la parabole fait-elle perdre de l'information ? Pour le savoir, j'ai pris la chaîne complète du 24 novembre 2026 (\fic{OPT\_CHAIN\_JOUR} ; hors de la période d'étude, mais la méthode ne dépend pas de la date), soit environ 400 options hors de la monnaie par échéance, aux échéances de 24 et 52 jours. J'ai calculé la volatilité locale de deux façons : avec \emph{toutes} les options (référence), puis avec les 5 seuls points 90 à 110\,\%, comme sur la surface Bloomberg.
+
+{\small
+\begin{center}
+\begin{tabular}{@{}c c c c c c c@{}}
+\rowcolor{marine}\entete{Échéance} & \entete{$K/F$} & \entete{Référence} & \entete{Parabole} & \entete{Écart} & \entete{Degré 4} & \entete{Écart} \\
+24 jours & 95\,\% & 29,74\,\% & 28,31\,\% & $-1{,}43$ & 29,76\,\% & $+0{,}02$ \\
+\rowcolor{gris}24 jours & 100\,\% & 20,04\,\% & 19,68\,\% & $-0{,}36$ & 20,37\,\% & $+0{,}33$ \\
+24 jours & 105\,\% & 13,34\,\% & 14,10\,\% & $+0{,}76$ & 12,99\,\% & $-0{,}35$ \\
+\rowcolor{gris}52 jours & 95\,\% & 28,02\,\% & 26,49\,\% & $-1{,}53$ & 28,45\,\% & $+0{,}43$ \\
+52 jours & 100\,\% & 19,71\,\% & 19,45\,\% & $-0{,}27$ & 19,77\,\% & $+0{,}06$ \\
+\rowcolor{gris}52 jours & 105\,\% & 13,69\,\% & 14,31\,\% & $+0{,}62$ & 13,60\,\% & $-0{,}09$ \\
+\end{tabular}
+\end{center}}
+\textbf{Ce qu'il faut en retenir.} La parabole est juste au cours (0,3 point), mais elle \textbf{aplatit un peu le skew} : environ $-1{,}5$ point à 95\,\%. Une courbe de degré 4, qui passe exactement par les 5 points, colle mieux ce jour-là. Mais sur 2012–2025, elle rend le skew local \textbf{deux fois plus agité} d'un jour à l'autre (0,55 point de variation quotidienne médiane, contre 0,25), car elle suit chaque erreur de cotation. Les deux donnent la même corrélation avec la cible. Un écart à peu près constant ne gêne pas un modèle ; un bruit qui change chaque jour, si. \textbf{Je garde donc la parabole.} Le degré est un réglage (\fic{DEGRE\_LISSAGE} dans \fic{config.py}) : refaire les modèles avec le degré 4 est un bon test de robustesse.
+
+\textbf{Et le taux ?} Remplacer nos T-bills par les taux OIS de Bloomberg, plus proches du coût de financement réel des intervenants, ne change la volatilité locale que de 0,003 point en médiane (0,3 au maximum). Je garde donc les T-bills, publics et déjà utilisés pour le cash.
+
+\textbf{Règle de rejet.} Si $\partial_T w\le0$ (le risque cumulé baisserait avec l'échéance) ou si le dénominateur est $\le0$, la surface permettrait un arbitrage et la volatilité locale n'existe pas. Dans ce cas, \textbf{toute la journée est vidée}, dans C comme dans B, et jamais remplie. Cela ne se produit qu'une fois, le 20 septembre 2022 ; s'y ajoute le 27 octobre 2022, rejeté par le contrôle de B (même surface, donc même rejet).
+
+{\small
+\begin{tabularx}{\linewidth}{@{}L{4.6cm} Y@{}}
+\rowcolor{marine}\entete{Colonne de \fic{variables\_C.csv}} & \entete{Contenu (en \% ou en points de volatilité)} \\
+\fic{vl\_\{30,60\}j\_\{95,100,105\}spot\_pct} & la volatilité locale aux mêmes 6 points que les IV de B \eqref{eq:dupire} \\
+\rowcolor{gris}\fic{skew\_vl\_30j\_points} & $\sigma_{\mathrm{loc}}(0{,}95;30)-\sigma_{\mathrm{loc}}(1;30)$ : le prix de la protection contre la baisse, en local \\
+\fic{pente\_vl\_60j\_30j\_points} & $\sigma_{\mathrm{loc}}(1;60)-\sigma_{\mathrm{loc}}(1;30)$ : l'inquiétude à court terme, en local \\
+\end{tabularx}}
+
+\textbf{Ce que disent les chiffres} (3\,518 séances, 2012–2025).
+\begin{itemize}[nosep,leftmargin=*]
+  \item \textbf{Niveau} : au cours, 14,2\,\% en médiane, contre 13,2\,\% pour l'IV ; à 95\,\%, 23,1\,\% contre 18,1\,\%. Maximum : 79,8\,\% à 95\,\% du cours le 18 mars 2020, en plein krach du Covid.
+  \item \textbf{Pente} : la volatilité locale à 60 jours est en général un peu au-dessus de celle à 30 jours (+0,5 point en médiane) ; elle passe en dessous dans 9,8\,\% des séances, aux moments de stress. Le 8 avril 2025 (VIX à 52), l'IV à 30 jours au cours vaut 42,3\,\% mais la volatilité locale seulement 27,6\,\% : le marché attendait un choc fort mais court : entre le 30\textsuperscript{e} et le 60\textsuperscript{e} jour, il prévoyait un risque bien plus faible qu'aujourd'hui.
+  \item \textbf{Premier indice} : la cible est corrélée à 0,58 avec $\sigma_{\mathrm{loc}}(1;30)$, contre 0,62 avec l'IV Bloomberg au cours et 0,61 avec le VIX. Seule, la volatilité locale n'en dit donc pas plus que l'IV. Son apport éventuel viendra de son skew et de sa pente, combinés à A et B : c'est exactement ce que la comparaison C contre B doit trancher.
+  \item \textbf{Limites} : grille étroite (fiable entre environ 92 et 108\,\% du cours), aucune échéance sous 30 jours, prix à terme calculé et non observé, skew local un peu aplati par la parabole. Les contrats à terme ES sautent les jours d'échéance trimestrielle (+5,8\,\% le 20 mars 2020) : ils ne servent qu'au contrôle.
+\end{itemize}
 
 % ================================================================
 \section{Exemple complet : le signal du 1\textsuperscript{er} juillet 2022}\label{sec:exemple}
-Pour rendre chaque formule concrète, voici toutes les valeurs d'une même ligne, celle du vendredi 1\textsuperscript{er} juillet 2022. Chacune peut être recalculée à la main à partir des fichiers. Colonne de gauche : les marchés et les variables A ; colonne de droite : les indices Cboe, la surface (B), le cash et la cible.
+Pour rendre chaque formule concrète, voici toutes les valeurs d'une même ligne, celle du vendredi 1\textsuperscript{er} juillet 2022. Chacune peut être recalculée à la main à partir des fichiers. Colonne de gauche : les marchés et les variables A ; colonne de droite : les indices Cboe, les variables B et C (Bloomberg), le cash et la cible.
 
 {\small
 \begin{tabularx}{\linewidth}{@{}Y r Y r@{}}
@@ -766,9 +890,12 @@ Pour rendre chaque formule concrète, voici toutes les valeurs d'une même ligne
 SPX, clôture & 3\,825,33 pts & VIX9D / VIX & 23,56 / 26,70 \\
 \rowcolor{gris}SPY : cours coté / ajusté & 381,24 / 360,49 \$ & VIX3M / VIX6M & 28,52 / 29,93 \\
 IEF : cours coté / ajusté & 103,24 / 89,08 \$ & SKEW & 118,59 \\
-\rowcolor{gris}IEF : distribution détachée ce jour & 0,155 \$ & $\sigma(0{,}95;30)$ / $\sigma(1;30)$ / $\sigma(1{,}05;30)$ & 27,69 / 24,44 / 21,12 \\
-$r_{\SPY}$ / $r_{\IEF}$ \eqref{eq:rendement} & +1,058\,\% / +1,072\,\% & $\sigma(0{,}95;60)$ / $\sigma(1;60)$ / $\sigma(1{,}05;60)$ & 27,67 / 24,72 / 21,55 \\
-\rowcolor{gris}$q$ \eqref{eq:panier} & +1,063\,\% & skew$_{30}$ / pente$_{60/30}$ \eqref{eq:skewpente} & 3,25 / 0,28 pt \\
+\rowcolor{gris}IEF : distribution détachée ce jour & 0,155 \$ & B : $\sigma(0{,}95;30)$ / $\sigma(1;30)$ / $\sigma(1{,}05;30)$ & 27,33 / 24,52 / 21,42 \\
+$r_{\SPY}$ / $r_{\IEF}$ \eqref{eq:rendement} & +1,058\,\% / +1,072\,\% & B : $\sigma(0{,}95;60)$ / $\sigma(1;60)$ / $\sigma(1{,}05;60)$ & 27,54 / 24,75 / 21,84 \\
+\rowcolor{gris}$q$ \eqref{eq:panier} & +1,063\,\% & B : skew$_{30}$ / pente$_{60/30}$ \eqref{eq:skewpente} & 2,80 / 0,23 pt \\
+ & & C : $\sigma_{\mathrm{loc}}$ à 30 j, 95 / 100 / 105\,\% \eqref{eq:dupire} & 30,58 / 25,05 / 20,12 \\
+\rowcolor{gris} & & C : skew / pente locaux & 5,53 / $-0{,}21$ pt \\
+ & & contrôle univ. : $\sigma(0{,}95;30)$ / $\sigma(1;30)$ & 27,69 / 24,44 \\
 \fic{var\_panier\_5 / 21 / 63} & 0,0175 / 0,0410 / 0,0323 & cash \eqref{eq:cash} : T-bill publié le 30/06, $1{,}15\,\% \times 1/365$ & 0,0000315 \\
 \rowcolor{gris}soit en volatilité & 13,2 / 20,2 / 18,0\,\% & RF de French & 0 \\
 \fic{var\_spy\_21} / \fic{var\_ief\_21} & 0,0904 / 0,0165 & Hamidieh : skew / straddle & $-0{,}057$ / 0,184 \\
@@ -785,6 +912,7 @@ $r_{\SPY}$ / $r_{\IEF}$ \eqref{eq:rendement} & +1,058\,\% / +1,072\,\% & $\sigma
   \item \textbf{Variances en volatilités} : on prend la racine carrée, par exemple $\sqrt{0{,}0410}=20{,}2\,\%$ sur 21 séances.
   \item \textbf{Corrélations positives} (+0,31 sur 21 séances) : en 2022, actions et obligations baissaient ensemble, et IEF ne protégeait plus le panier.
   \item \textbf{Cash} : le taux du T-bill publié la veille, 1,15\,\% par an, pour 1 jour : $1{,}15\,\%/365=0{,}00315\,\%$. Le RF de French, arrondi à 0,01\,\% par jour, tombe à 0.
+  \item \textbf{B et C} : les IV Bloomberg se lisent directement sur la grille ; le calcul de la volatilité locale est détaillé pas à pas en section~\ref{sec:locale}. La surface universitaire donne des IV proches (27,69 et 24,44 contre 27,33 et 24,52), ce qui illustre l'accord des deux sources.
   \item \textbf{Hamidieh} : skew de $-0{,}057$, soit des calls hors de la monnaie 5,7 points de volatilité moins chers que les puts ; straddle de 0,184, soit une volatilité d'environ $0{,}184/0{,}8\approx23\,\%$.
 \end{itemize}
 
@@ -879,7 +1007,7 @@ On ramène ensuite l'IV à 30 jours par la variance totale \eqref{eq:interpT}, c
 En moyenne, la surface est \textbf{0,50 point plus basse} que les vrais contrats. C'est peu gênant pour un modèle qui apprend des variations, mais il faut le signaler. Attention : seul le centre de la surface (autour du cours) est vérifié, et seulement en 2022.
 \end{attention}
 
-\textbf{Prix à terme : un travail préparé pour C.} Pour la volatilité locale, il faudra le prix à terme $F$ de l'indice à chaque échéance. On peut le tirer des prix des options grâce à la \textbf{parité call-put} : un call acheté et un put vendu au même prix d'exercice reviennent à acheter l'indice à terme.
+\textbf{Prix à terme : un contrôle pour C.} Pour C, le prix à terme $F$ vient des taux et du dividende estimé par Bloomberg \eqref{eq:lissage} ; la parité call-put ne sert ici que de contrôle, sur 2022. Le principe : On peut le tirer des prix des options grâce à la \textbf{parité call-put} : un call acheté et un put vendu au même prix d'exercice reviennent à acheter l'indice à terme.
 \begin{formule}{Prix à terme par la parité call-put \cite{hull}}
 \begin{equation}\label{eq:parite}
 C-P=D(T)\,(F-K)\ \Rightarrow\ F=K+\frac{C-P}{D(T)},\qquad D(T)=1-\frac{d}{100}\,\frac{T}{360}
@@ -893,7 +1021,19 @@ F^{\mathrm{bas}}=K+\frac{C^{\mathrm{bid}}-P^{\mathrm{ask}}}{D(T)},\qquad F^{\mat
 \notation{$T_1,T_2,\lambda$}{échéances de T-bills qui encadrent $T$, et poids d'interpolation}
 \notation{$F;\ F^{\mathrm{bas}},F^{\mathrm{haut}}$}{\textbf{prix à terme} du SPX, et sa fourchette : le prix le plus bas et le plus haut compatibles avec les prix d'achat et de vente. On garde la médiane des milieux $(F^{\mathrm{bas}}+F^{\mathrm{haut}})/2$}
 \end{formule}
-J'utilise les options SPXW PM de 15 à 95 jours, entre 98 et 102\,\% du cours, avec au moins 3 paires call-put par échéance. On obtient 2\,102 estimations, avec 30 paires par échéance en médiane. La fourchette de $F$ mesure 1,26 point d'indice en médiane (0,03\,\% d'un indice vers 3\,900), et les estimations des différentes paires ne diffèrent que d'environ 0,05 point (écart interquartile médian). Le prix à terme reste toujours à moins de 1,04\,\% du cours. La méthode fonctionne : elle pourra servir telle quelle pour C.
+J'utilise les options SPXW PM de 15 à 95 jours, entre 98 et 102\,\% du cours, avec au moins 3 paires call-put par échéance. On obtient 2\,102 estimations, avec 30 paires par échéance en médiane. La fourchette de $F$ mesure 1,26 point d'indice en médiane (0,03\,\% d'un indice vers 3\,900), et les estimations des différentes paires ne diffèrent que d'environ 0,05 point (écart interquartile médian). Le prix à terme reste toujours à moins de 1,04\,\% du cours. La méthode fonctionne, mais seulement sur ces 6 mois : c'est pourquoi C utilise le prix à terme tiré des taux et du dividende, disponible chaque jour.
+
+\subsection{Contrôles de la surface Bloomberg}
+Ils sont décrits avec les variables qu'ils protègent ; en résumé :
+\begin{itemize}[nosep,leftmargin=*]
+  \item \textbf{structure} : noms des champs, séances NYSE complètes, bornes (section~\ref{sec:pretraitement}) ;
+  \item \textbf{accord avec nos sources} : SPX, VIX et taux identiques ou presque ; IV à 0,28 point de la surface universitaire au cours (section~\ref{sec:implicites}) ;
+  \item \textbf{vrais contrats} : 777 options expirées de 2015 à 2025, à 0,32 point de la surface en médiane (section~\ref{sec:locale}) ;
+  \item \textbf{rejets} : règle \eqref{eq:rejet} et règle d'arbitrage de C ; deux journées vidées dans B et C, le 20/09 et le 27/10/2022 ;
+  \item \textbf{lissage} : test sur la chaîne complète d'une séance, et sensibilité au taux (section~\ref{sec:locale}) ;
+  \item \textbf{données écartées} : IV par delta à 1 mois, faussées les jours d'échéance mensuelle.
+\end{itemize}
+Fichiers (privés) : \fic{controle\_qualite\_surface\_bloomberg.csv}, \fic{controle\_volatilite\_locale.csv}, \fic{controle\_lissage\_chaine.csv}, \fic{controle\_contrats\_bloomberg.csv}.
 
 \subsection{Audit indépendant}
 \begin{valide}{48 contrôles sur 48 satisfaits — \fic{tests/audit\_donnees.py}}
@@ -905,6 +1045,7 @@ Ce second programme n'utilise pas le code du projet : il relit lui-même les fic
 \item la cible, recalculée par une boucle simple à partir des prix Yahoo bruts (écart relatif maximal de $4{,}9\times10^{-10}$, la précision d'un fichier à 10 chiffres) ;
 \item les bornes des indices, la forme du sourire, l'IV sous le VIX chaque jour, le cash, le contrôle de la surface et les prix à terme.
 \end{itemize}
+L'audit porte sur les données publiques. Les classeurs Bloomberg, privés, sont vérifiés par les tests (trois relisent les vrais classeurs) et par les contrôles ci-dessus.
 \end{valide}
 
 % ================================================================
@@ -922,28 +1063,29 @@ H3 & Pour les variables A, le panier est remis à 60/40 chaque jour \eqref{eq:pa
 H5 & Les variables A retirent la moyenne des rendements avant de les mettre au carré ; la cible ne le fait pas. & La moyenne quotidienne vaut environ 0,04\,\% : l'écart est négligeable (section~\ref{sec:variables}). \\
 \rowcolor{gris}H6 & Le signal est calculé après la clôture du jour $s$ (16\,h\,15 à New York, fin de cotation des options SPX), et l'on achète à la clôture du lendemain $s+1$. & Le modèle n'utilise que des informations déjà connues, et laisser un jour pour agir est réaliste. \\
 H7 & Le risque se mesure avec les prix de clôture, d'un jour au suivant, sans les mouvements à l'intérieur de la journée. & La cible est donc un peu « bruitée » (une journée agitée qui finit à plat compte peu). C'est pour cela que l'on juge les modèles avec QLIKE, qui supporte ce bruit \cite{patton}. \\
-\rowcolor{gris}H8 & Le prix d'exercice est rapporté au cours du jour ($K/S$), et non au prix à terme ($K/F$). & À 30–60 jours, $F$ et $S$ diffèrent de moins de 1,04\,\% (mesuré sur 2022). C'est aussi la convention des auteurs de la surface. \\
+\rowcolor{gris}H8 & Le prix d'exercice est rapporté au cours du jour ($K/S$), et non au prix à terme ($K/F$). & À 30–60 jours, $F$ et $S$ diffèrent de moins de 1,04\,\% (mesuré sur 2022). C'est aussi la convention de Bloomberg (\fic{MNY\_DF}) et des auteurs de la surface universitaire. \\
 H9 & Les auteurs de la surface lissent chaque jour avec les seules données de ce jour. & Leur code traite bien chaque jour séparément, et l'accord avec le VIX est vérifié chaque année. Sinon, la surface ferait fuiter le futur. \\
 \rowcolor{gris}H10 & Le cash rapporte le taux du T-bill à 4 semaines publié la veille \eqref{eq:cash}. & Ce taux est connu au moment de décider et proche de ce que rapporte vraiment un placement sans risque. Il remplace le RF de French, trop arrondi. \\
 H11 & Dans l'échantillon 2022, le call et le put sont cotés au même instant, et le jour de cotation est le jour de valeur. & Impossible à vérifier sans l'heure de cotation. Ces résultats servent donc de vérification, pas de donnée pour les modèles. \\
+\rowcolor{gris}H12 & Pour C, le prix à terme vaut $S\,e^{(r_T-q)T}$, avec le dividende $q$ estimé par Bloomberg, identique pour toutes les échéances \eqref{eq:lissage}. & Sur 30 à 60 jours, $F/S$ reste proche de 1 (0,99965 le 1\textsuperscript{er} juillet 2022). Les contrats à terme ES sautent les jours d'échéance et ne servent qu'au contrôle. \\
 \end{longtable}}
 
 % ================================================================
 \section{Limites et points ouverts}
 Ces limites ne bloquent pas le projet, mais il faut les connaître et savoir les dire à l'oral.
 \begin{itemize}
-\item \textbf{La surface couvre une période courte} : 1\,734 séances, de 2017 à 2023 seulement. Un modèle « A + surface » ne peut donc pas apprendre sur 2012–2016. Sur toute la période 2012–2025, l'information des options passe par les indices Cboe (VIX, VIX9D, VIX3M, VIX6M, SKEW).
-\item \textbf{La surface n'est pas une donnée brute} : ses auteurs l'ont lissée (SVI), prolongée aux bords et complétée. Elle est fiable au centre (section~\ref{sec:controles}), moins sûre aux extrémités.
+\item \textbf{B et C dépendent d'un fichier privé} : sans les classeurs Bloomberg, on ne dispose que de la surface universitaire (1\,734 séances, 2017–2023) et des indices Cboe. Un modèle sur la surface universitaire ne peut pas apprendre sur 2012–2016.
+\item \textbf{Aucune des deux surfaces n'est une donnée brute} : les auteurs de la surface universitaire l'ont lissée (SVI), prolongée aux bords et complétée ; Bloomberg interpole ses points à maturité constante avec une méthode propriétaire. Les deux sont fiables au centre (sections~\ref{sec:controles} et~\ref{sec:locale}), moins sûres aux extrémités.
 \item \textbf{On ne connaît pas l'heure exacte des prix}. Les variables de Hamidieh sont probablement relevées à 15\,h\,45 ; le VIX et les ETF ferment à des minutes un peu différentes. L'écart est faible d'un jour à l'autre, mais il existe.
 \item \textbf{Les variables de Hamidieh} sont des moyennes sur des échéances qui changent chaque jour : je les garde pour vérifier, pas comme variables du modèle.
 \item \textbf{Les données ont été téléchargées le 19 novembre 2026} : elles ont pu être corrigées depuis les dates qu'elles décrivent (par exemple, les cours ajustés de Yahoo changent à chaque nouveau dividende). Ce sont donc les données d'aujourd'hui, pas celles que l'on voyait à l'époque.
-\item \textbf{La demande Bloomberg reste ouverte} (terminal de données financières, accessible par un contact à l'ESCP) : une grille 2012–2025 avec prix à terme, heure de cotation et façon de repérer les prix d'exercice ($K/S$, $K/F$ ou delta). Elle seule permettrait de construire C (section~\ref{sec:variables}).
+\item \textbf{La surface Bloomberg de B et C est étroite et privée} : 90 à 110\,\% du cours, 30 jours à 1 an, sans heure de cotation exacte (« fin de journée »), et interdite de diffusion. Le prix à terme y est calculé, pas observé, et la parabole aplatit un peu le skew local (section~\ref{sec:locale}). Le lissage s'écarte de plus d'un point des IV Bloomberg sur environ un quart des séances (3,0 au pire) : aucune journée n'est rejetée pour cela, mais c'est à dire à l'oral.
 \end{itemize}
 
 % ================================================================
 \section{Ce que je vous transmets et la suite}\label{sec:suite}
 \subsection{Ce que vous avez entre les mains}
-\textbf{Le dépôt GitHub du groupe}, copie (\emph{fork}) du dépôt du cours : \url{https://github.com/Cherif-D/ai_in_finance_volatilite_allocation}. Il contient le code, ce document (\fic{docs/}), les données préparées (\fic{data/prepare/*.csv}) et les contrôles. Le \fic{README.md} décrit le projet selon le modèle des enseignants. Pour le récupérer et vérifier que tout fonctionne (Windows, Python 3.12) :
+\textbf{Le dépôt GitHub du groupe}, copie (\emph{fork}) du dépôt du cours : \url{https://github.com/Cherif-D/ai_in_finance_volatilite_allocation}. Il contient le code, ce document (\fic{docs/}), les données préparées (\fic{data/prepare/*.csv}, sauf \fic{variables\_B.csv} et \fic{variables\_C.csv}, privés) et les contrôles publics. Le \fic{README.md} décrit le projet selon le modèle des enseignants. Pour le récupérer et vérifier que tout fonctionne (Windows, Python 3.12) :
 \begin{verbatim}
 git clone https://github.com/Cherif-D/ai_in_finance_volatilite_allocation.git
 cd ai_in_finance_volatilite_allocation
@@ -951,13 +1093,14 @@ py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 \end{verbatim}
-Les données brutes (247 Mo) et les deux fichiers tirés de l'échantillon d'options 2022 ne sont pas dans le dépôt, qui est public : \fic{scripts/01\_collecte.py} et \fic{03\_controle\_surface.py} les recréent si besoin (fichier \fic{DONNEES.md}).
+Les données brutes (247 Mo), les deux fichiers tirés de l'échantillon d'options 2022, les quatre classeurs Bloomberg et ce qui en dérive ne sont pas dans le dépôt, qui est public. Pour les données publiques, \fic{scripts/01\_collecte.py} et \fic{03\_controle\_surface.py} les recréent si besoin (fichier \fic{DONNEES.md}).
 
-\textbf{Les trois fichiers à utiliser}, dans \fic{data/prepare/} :
+\textbf{Les cinq fichiers à utiliser}, dans \fic{data/prepare/} :
 \begin{itemize}[nosep]
 \item \fic{donnees\_quotidiennes.csv}, 29 colonnes : marchés, indices Cboe, surface, cash ;
 \item \fic{variables\_A.csv}, les 13 variables, \textbf{connues} à la date de la ligne ;
-\item \fic{cibles\_futures.csv}, la cible, \textbf{inconnue} à la date de la ligne.
+\item \fic{cibles\_futures.csv}, la cible, \textbf{inconnue} à la date de la ligne ;
+\item \fic{variables\_B.csv} et \fic{variables\_C.csv}, \textbf{hors dépôt} : demandez les classeurs Bloomberg à Maxime (canal privé), placez-les dans \fic{data/brut/bloomberg/}, puis lancez \fic{scripts/04\_surface\_bloomberg.py}.
 \end{itemize}
 Chaque colonne a sa fiche dans l'annexe~\ref{sec:fiches}. Le code qui les produit est dans \fic{portefeuille/} et \fic{scripts/}. Les tests et l'audit passent.
 
@@ -975,6 +1118,9 @@ quotidien, A, cible = lire("donnees_quotidiennes.csv"), lire("variables_A.csv"),
 # Ensemble « A + indices Cboe », à partir du 27/11/2013 (VIX9D et VIX6M publiés en temps réel)
 X = A.join(quotidien[["vix9d", "vix", "vix3m", "vix6m", "skew"]])
 X = X[quotidien["vix9d_vix6m_diffuses"]]
+# Ensembles A + B et A + B + C (fichiers privés, après scripts/04_surface_bloomberg.py) :
+#   X = A.join(lire("variables_B.csv"))  puis  X = X.join(lire("variables_C.csv"))
+#   Pour comparer des ensembles, garder leurs dates communes : X = X.loc[dates_communes]
 y = np.log(cible["variance_21j_ann"]).rename("log_variance")   # cible en logarithme
 donnees = X.join(y).dropna()
 
@@ -999,18 +1145,18 @@ D'après les consignes du cours \cite{cours6} :
 \end{itemize}
 
 \subsection{La feuille de route, étape par étape}
-Le cours recommande sept étapes \cite{cours6}. Les étapes 1, 3 et une grande partie de la 4 sont faites. Voici ce qu'il reste à faire, et à quoi s'attendre.
+Le cours recommande sept étapes \cite{cours6}. Les étapes 1, 3 et 4 sont faites. Voici ce qu'il reste à faire, et à quoi s'attendre.
 
 {\small
 \begin{longtable}{@{}>{\leavevmode\bfseries\color{sarcelle}}p{2.1cm} L{7.6cm} L{7.2cm}@{}}
 \rowcolor{marine}\entete{Étape} & \entete{Ce qu'il faut faire} & \entete{À quoi s'attendre} \\
 \endhead
 1. Problème & \textcolor{vert}{Fait} (section~\ref{sec:probleme}) : prévoir $\sigma_s$, puis investir $a=\min(1,\,8\,\%/\widehat\sigma)$. & Une diapositive : la question, la règle, les ensembles A, B, C. \\
-\rowcolor{gris}2. Exploration & Un notebook : \texttt{describe()}, \texttt{info()}, histogrammes, carte des corrélations (\texttt{heatmap}), valeurs manquantes, graphe des crises 2020 et 2022. & La cible est très asymétrique : son logarithme l'est beaucoup moins. Les variances A sont très corrélées entre elles. Les manques sont tous expliqués (surface hors 2017–2023, VIX9D/VIX6M avant 2013, 22 dernières cibles). \\
+\rowcolor{gris}2. Exploration & Un notebook : \texttt{describe()}, \texttt{info()}, histogrammes, carte des corrélations (\texttt{heatmap}), valeurs manquantes, graphe des crises 2020 et 2022. & La cible est très asymétrique : son logarithme l'est beaucoup moins. Les variances A sont très corrélées entre elles. Les manques sont tous expliqués (surface universitaire hors 2017–2023, VIX9D/VIX6M avant 2013, 2 journées vides en 2022 dans B et C, 22 dernières cibles). \\
 3. Préparation & \textcolor{vert}{Fait} pour les données. Reste : le découpage dans le temps avec purge (exemple ci-dessus), et la mise à l'échelle des variables calculée \textbf{sur l'apprentissage seulement}. & Pas de \texttt{train\_test\_split} au hasard, contrairement à l'exemple du cours : les cibles se chevauchent sur 21 séances, et le hasard mélangerait passé et futur \cite{lopezdeprado}. \\
-\rowcolor{gris}4. Variables & \textcolor{vert}{Fait} pour A et B. On peut ajouter, avec le passé seulement : le logarithme des variances, le rapport VIX / volatilité passée, l'écart VIX3M $-$ VIX. & Ces transformations aident surtout le modèle linéaire (Ridge). Les arbres en ont moins besoin. \\
-5. Modèles & D'abord des \textbf{références simples} : persistance (volatilité des 21 dernières séances), EWMA \cite{riskmetrics}, GARCH(1,1) \cite{bollerslev}. Ensuite Ridge, forêt aléatoire et XGBoost sur $\log y_s$, avec A, puis A + indices Cboe, puis A + surface (2017–2023). Réglages choisis par validation glissante sur 2015–2019. & Battre la persistance et l'EWMA n'est pas garanti : ce sont de bonnes références. Avec environ 1\,500 exemples, Ridge fait souvent aussi bien que les arbres. Pour A + surface, l'échantillon est plus court : par exemple apprentissage 2017–2020, test 2021–2023. \\
-\rowcolor{gris}6. Évaluation & MAE, RMSE, QLIKE \eqref{eq:metriques} et $R^2$ sur la période de test, \textbf{ensemble par ensemble} (A, A + Cboe, A + surface). Puis le backtest de la règle d'allocation. & Les erreurs se concentrent sur 2020 et 2022 : présenter les scores aussi hors de ces crises. Le premier indice (fin de section) laisse penser que les options aident. \\
+\rowcolor{gris}4. Variables & \textcolor{vert}{Fait} pour A, B et C. On peut ajouter, avec le passé seulement : le logarithme des variances, le rapport VIX / volatilité passée, l'écart VIX3M $-$ VIX. & Ces transformations aident surtout le modèle linéaire (Ridge). Les arbres en ont moins besoin. \\
+5. Modèles & D'abord des \textbf{références simples} : persistance (volatilité des 21 dernières séances), EWMA \cite{riskmetrics}, GARCH(1,1) \cite{bollerslev}. Ensuite Ridge, forêt aléatoire et XGBoost sur $\log y_s$, avec A, puis A + indices Cboe, puis A + B (Bloomberg), puis A + B + C, tous sur 2012–2025 avec le même découpage. En contrôle : A + B universitaire sur 2017–2023. Réglages choisis par validation glissante sur 2015–2019. & Battre la persistance et l'EWMA n'est pas garanti : ce sont de bonnes références. Avec 1\,500 à 2\,000 exemples d'apprentissage, Ridge fait souvent aussi bien que les arbres. \textbf{Comparer les ensembles sur les mêmes dates} : les jours disponibles diffèrent un peu (A + Cboe commence fin 2013, B et C ont 2 jours vides) ; prendre les dates communes à tous les ensembles comparés. Pour le contrôle universitaire, l'échantillon est plus court : par exemple apprentissage 2017–2020, test 2021–2023. \\
+\rowcolor{gris}6. Évaluation & MAE, RMSE, QLIKE \eqref{eq:metriques} et $R^2$ sur la période de test, \textbf{ensemble par ensemble} (A, A + Cboe, A + B, A + B + C). Puis le backtest de la règle d'allocation. & Les erreurs se concentrent sur 2020 et 2022 : présenter les scores aussi hors de ces crises. Le premier indice (fin de section) laisse penser que les options aident. \\
 7. Interprétation & Importance des variables, valeurs SHAP, coefficients de Ridge, et lecture économique. & Le VIX devrait compter, avec un effet inférieur à 1 pour 1 (il contient une prime de risque). La corrélation SPY-IEF devrait compter en 2022. \\
 \end{longtable}}
 
@@ -1033,15 +1179,17 @@ Il ne faut pas promettre un meilleur rendement : l'intérêt des portefeuilles p
 \textbf{Premier indice, à confirmer hors échantillon.} La cible est plus corrélée aux mesures tirées des options qu'à la volatilité passée sur 21 séances :
 \begin{itemize}[nosep]
 \item sur 2012–2025 (3\,498 dates) : 0,61 avec le VIX, contre 0,53 avec la volatilité passée ;
-\item sur 2017–2023, la période de la surface (1\,734 dates) : 0,66 avec $\sigma(1;30)$ et 0,64 avec le VIX, contre 0,58 avec la volatilité passée.
+\item pour B Bloomberg, sur la même période : 0,62 avec $\sigma(1;30)$, et $-0{,}49$ avec la pente : quand la pente est négative (crise), le risque à venir est élevé ;
+\item pour C : 0,58 avec la volatilité locale au cours (section~\ref{sec:locale}) ;
+\item en contrôle, sur 2017–2023 (1\,734 dates) : 0,66 avec $\sigma(1;30)$ de la surface universitaire et 0,64 avec le VIX, contre 0,58 avec la volatilité passée.
 \end{itemize}
 Ces corrélations portent sur tout l'échantillon : ce ne sont pas des prévisions. Elles suggèrent que les options apportent de l'information, et c'est exactement ce que la suite doit prouver proprement.
 
 \begin{retenir}{Plan proposé pour les deux semaines qui restent}
 \begin{itemize}[leftmargin=1.2em,nosep]
 \item \textbf{Du 23 au 29 novembre} : exploration (étape 2), découpage avec purge, références simples (persistance, EWMA, GARCH) et leurs scores. Répartir dès maintenant qui présente quelle partie.
-\item \textbf{Du 30 novembre au 6 décembre} : Ridge, forêt aléatoire, XGBoost sur A, A + Cboe, A + surface ; scores, backtest, interprétation ; diapositives et répétition chronométrée.
-\item \textbf{Les 10 diapositives}, selon la structure du cours : 1. le problème ; 2. les données (ce document, en une page) ; 3. l'exploration ; 4. les variables A, B, C ; 5. les modèles et le découpage avec purge ; 6. les scores ; 7. les résultats et le backtest ; 8. ce qui a marché ou non ; 9. la conclusion ; 10. le titre, ou un résultat de plus.
+\item \textbf{Du 30 novembre au 6 décembre} : Ridge, forêt aléatoire, XGBoost sur A, A + Cboe, A + B, A + B + C ; scores, backtest, interprétation ; diapositives et répétition chronométrée.
+\item \textbf{Les 10 diapositives}, selon la structure du cours : 1. le titre et le problème ; 2. les données (ce document, en une page) ; 3. l'exploration ; 4. les variables A, B, C ; 5. les modèles et le découpage avec purge ; 6. les scores ; 7. les résultats et le backtest ; 8. ce qui a marché ou non ; 9. la conclusion ; 10. en réserve : un résultat de plus pour les questions.
 \end{itemize}
 \end{retenir}
 
@@ -1069,7 +1217,7 @@ Valeurs typiques sur 2012–2025 : médiane, avec entre crochets les quantiles �
 \fic{vix3m} & indice de volatilité de Cboe à 3 mois & \% ; Cboe & 18,1 [13,4 ; 30,8] \\
 \rowcolor{gris}\fic{vix6m} & indice de volatilité de Cboe à 6 mois & \% ; Cboe & 19,6 [15,2 ; 31,5] \\
 \fic{skew} & indice d'asymétrie de Cboe \eqref{eq:skewcboe} & points ; Cboe & 130,6 [116,2 ; 154,1] \\
-\rowcolor{gris}\fic{iv\_30j\_95spot\_pct} & volatilité implicite 30 jours, 95\,\% du cours \eqref{eq:interpm}–\eqref{eq:interpT} & \% ; surface & 18,9 [12,9 ; 31,5] \\
+\rowcolor{gris}\fic{iv\_30j\_95spot\_pct} & volatilité implicite 30 jours, 95\,\% du cours \eqref{eq:interpm}–\eqref{eq:interpT}, \textbf{surface universitaire (contrôle de B)} & \% ; surface & 18,9 [12,9 ; 31,5] \\
 \fic{iv\_30j\_100spot\_pct} & volatilité implicite 30 jours, à la monnaie & \% ; surface & 14,0 [7,6 ; 27,5] \\
 \rowcolor{gris}\fic{iv\_30j\_105spot\_pct} & volatilité implicite 30 jours, 105\,\% du cours & \% ; surface & 11,2 [7,6 ; 23,6] \\
 \fic{iv\_60j\_95spot\_pct} & volatilité implicite 60 jours, 95\,\% du cours & \% ; surface & 18,9 [12,7 ; 30,5] \\
@@ -1105,6 +1253,26 @@ Valeurs typiques sur 2012–2025 : médiane, avec entre crochets les quantiles �
 \rowcolor{gris}\fic{variance\_21j\_ann} & variance réalisée future annualisée, $y_s$ & \eqref{eq:cible} & 0,0051 [0,0013 ; 0,0276] \\
 \fic{vol\_21j\_ann} & \textbf{volatilité réalisée future annualisée (cible)}, $\sigma_s$ & \eqref{eq:cible} & 7,1\,\% [3,6 ; 16,6] ; max 47,8\,\% \\
 \end{longtable}}
+
+\subsection{\fic{variables\_B.csv} et \fic{variables\_C.csv} (privés, surface Bloomberg)}
+{\small
+\begin{longtable}{@{}L{4.6cm} L{6.9cm} L{1.7cm} L{3.5cm}@{}}
+\rowcolor{marine}\entete{Colonne} & \entete{Nom complet} & \entete{Formule} & \entete{Valeurs typiques} \\
+\endhead
+\fic{iv\_30j\_95spot\_pct} & IV Bloomberg à 30 jours, 95\,\% du cours (B) & grille & 18,1 [14,0 ; 29,5] \\
+\rowcolor{gris}\fic{iv\_30j\_100spot\_pct} & IV Bloomberg à 30 jours, au cours (B) & grille & 13,2 [8,5 ; 25,4] ; max 77,7 \\
+\fic{iv\_30j\_105spot\_pct} & IV Bloomberg à 30 jours, 105\,\% du cours (B) & grille & 10,5 [8,0 ; 21,0] \\
+\rowcolor{gris}\fic{iv\_60j\_\{95,100,105\}spot\_pct} & mêmes IV à 60 jours (B) & grille & 17,9 / 14,0 / 11,1 \\
+\fic{skew\_30j\_points} & asymétrie du sourire à 30 jours (B) & \eqref{eq:skewpente} & 4,8 [3,3 ; 6,4] \\
+\rowcolor{gris}\fic{pente\_60j\_30j\_points} & pente de la structure par terme (B) & \eqref{eq:skewpente} & 0,8 [$-0{,}9$ ; 1,8] ; min $-8{,}8$ \\
+\fic{vl\_30j\_95spot\_pct} & volatilité locale à 30 jours, 95\,\% du cours (C) & \eqref{eq:dupire} & 23,1 [19,4 ; 31,5] \\
+\rowcolor{gris}\fic{vl\_30j\_100spot\_pct} & volatilité locale à 30 jours, au cours (C) & \eqref{eq:dupire} & 14,2 [10,0 ; 24,5] ; max 71,5 \\
+\fic{vl\_30j\_105spot\_pct} & volatilité locale à 30 jours, 105\,\% du cours (C) & \eqref{eq:dupire} & 11,0 [9,2 ; 19,5] \\
+\rowcolor{gris}\fic{vl\_60j\_\{95,100,105\}spot\_pct} & volatilité locale à 60 jours (C) & \eqref{eq:dupire} & 21,7 / 14,6 / 10,5 \\
+\fic{skew\_vl\_30j\_points} & skew local à 30 jours (C) & \eqref{eq:dupire} & 8,9 [5,9 ; 11,6] \\
+\rowcolor{gris}\fic{pente\_vl\_60j\_30j\_points} & pente locale 60 − 30 jours (C) & \eqref{eq:dupire} & 0,5 [$-0{,}3$ ; 1,1] ; min $-7{,}7$ \\
+\end{longtable}}
+Les deux fichiers ont 3\,520 lignes, dont 3\,518 complètes : les 20/09 et 27/10/2022 sont vides. Les colonnes de B portent les mêmes noms que celles de la surface universitaire dans \fic{donnees\_quotidiennes.csv}.
 
 \textbf{Autres fichiers.}
 \begin{itemize}
@@ -1142,7 +1310,12 @@ $\lambda$ & poids d'interpolation ; paramètre EWMA & $S$ & cours du SPX (\emph{
 $v_{t,L}$ & variance historique annualisée \eqref{eq:variance} & $w(T)$ & variance totale \eqref{eq:interpT} \\
 \rowcolor{gris}$w_{\cdot,t}$ & poids du portefeuille \eqref{eq:allocation} & $y$ (T-bill) & taux de rendement d'un T-bill \eqref{eq:tbill} \\
 $\bar z_{t,L}$ & moyenne sur la fenêtre \eqref{eq:variance} & $\mathbf 1_{\{\cdot\}}$ & indicatrice \\
+\rowcolor{gris}$F_T,\ r_T$ & prix à terme et taux pour l'échéance $T$ (C) \eqref{eq:lissage} & $y$ (C) & $\ln(K/F_T)$, prix d'exercice face au prix à terme \eqref{eq:lissage} \\
+$a_T,b_T,c_T$ & coefficients de la parabole du sourire \eqref{eq:lissage} & $\partial_T w,\ \partial_y w$ & dérivées de la variance totale \eqref{eq:dupire} \\
 \end{longtable}}
+
+% ================================================================
+\textbf{Attention, trois lettres ont plusieurs sens selon la section} : $q$ est le rendement du panier \eqref{eq:panier} ou le rendement de dividende (Dupire, \eqref{eq:lissage}) ; $y$ est le taux d'un T-bill \eqref{eq:tbill}, la variance cible $y_s$ \eqref{eq:cible} ou $\ln(K/F_T)$ (C) ; $w$ est un poids du portefeuille \eqref{eq:allocation} ou la variance totale \eqref{eq:interpT}. La formule citée lève toujours l'ambiguïté.
 
 % ================================================================
 \section{Annexe C : liste des équations}\label{sec:equations}
@@ -1162,12 +1335,13 @@ $\bar z_{t,L}$ & moyenne sur la fenêtre \eqref{eq:variance} & $\mathbf 1_{\{\cd
 \rowcolor{gris}\eqref{eq:cash} & rendement quotidien du cash & \eqref{eq:parite} & parité call-put et actualisation \\
 \eqref{eq:panier} & rendement du panier à poids fixes & \eqref{eq:bornes} & bornes du prix à terme \\
 \rowcolor{gris}\eqref{eq:variance} & moyenne et variance historiques & \eqref{eq:metriques} & MAE, RMSE, QLIKE \\
-\eqref{eq:cumul} & rendement cumulé et semi-variance & & \\
+\eqref{eq:cumul} & rendement cumulé et semi-variance & \eqref{eq:lissage} & prix à terme et lissage du sourire (C) \\
 \end{longtable}}
 
 % ================================================================
 {\small\sloppy
 \begin{thebibliography}{99}\setlength{\itemsep}{1pt}\setlength{\parskip}{0pt}
+\bibitem{bbg} Bloomberg L.P., terminal Bloomberg Professional, extraction du 24/11/2026 à l'ESCP : champs \fic{IMPVOL\_\ldots MNY\_DF}, \fic{IDX\_EST\_DVD\_YLD}, \fic{OPT\_CHAIN}, \fic{USGG\ldots}, \fic{USSO\ldots} ; description des champs par la fonction FLDS. Données sous licence, non redistribuables.
 \bibitem{cours6} M.~El Fakir, N.~de Roux, \emph{Introduction to Machine Learning — Course 6: Project Presentation}, Université Paris 1, 23 septembre 2026.
 \bibitem{dupire} B.~Dupire, « Pricing with a Smile », \emph{Risk}, 7(1), 1994, p.~18–20. \url{https://www.risk.net/derivatives/equity-derivatives/1500211/pricing-with-a-smile}
 \bibitem{gatheraljacquier} J.~Gatheral, A.~Jacquier, « Arbitrage-Free SVI Volatility Surfaces », \emph{Quantitative Finance}, 14(1), 2014, p.~59–71. \href{https://doi.org/10.1080/14697688.2013.819986}{doi:10.1080/14697688.2013.819986}

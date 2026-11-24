@@ -56,7 +56,8 @@ def _variance_au_niveau(niveaux: np.ndarray, cube: np.ndarray, niveau: float) ->
 
     Retourne un tableau échéance × date de variances (IV en pourcentage, au carré).
     """
-    haut = niveaux.searchsorted(niveau)
+    # Bornée à [1, n−1] : un niveau égal au premier nœud ne doit pas « faire le tour » du tableau.
+    haut = int(np.clip(niveaux.searchsorted(niveau), 1, len(niveaux) - 1))
     poids = (niveau - niveaux[haut - 1]) / (niveaux[haut] - niveaux[haut - 1])
     return (1 - poids) * cube[haut - 1].astype(float) ** 2 + poids * cube[haut].astype(float) ** 2
 

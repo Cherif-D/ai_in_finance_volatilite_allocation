@@ -69,6 +69,14 @@ data/prepare/*
 # (le dépôt est public) : scripts/03_controle_surface.py les recrée.
 data/prepare/termes_indicatifs_2022S2.csv
 data/controles/controle_chaines_et_surfaces.csv
+# Dérivés de la surface Bloomberg (ensembles B et C), dont la diffusion est interdite :
+# scripts/04_surface_bloomberg.py les recrée à partir des classeurs privés.
+data/prepare/variables_B.csv
+data/prepare/variables_C.csv
+data/controles/controle_qualite_surface_bloomberg.csv
+data/controles/controle_volatilite_locale.csv
+data/controles/controle_lissage_chaine.csv
+data/controles/controle_contrats_bloomberg.csv
 datasets/
 models/
 checkpoints/

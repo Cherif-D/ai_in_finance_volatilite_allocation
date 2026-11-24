@@ -15,6 +15,7 @@ tzdata==2025.3              # fuseau horaire America/New_York
 
 # --- Modèles prévus par le protocole (Ridge, forêt aléatoire, MLP, XGBoost) ---
 scikit-learn==1.8.0
+scipy==1.18.1               # inversion de Black-Scholes (contrôle par les options expirées)
 xgboost==3.2.0
 
 # Le document de passation (docs/latex/) se compile avec XeLaTeX, installé hors de Python.

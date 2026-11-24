@@ -57,6 +57,24 @@ FENETRES = (21, 63)            # fenêtres des autres variables historiques
 ECHEANCES_SURFACE = (30, 60)          # jours calendaires
 NIVEAUX_SURFACE = (.95, 1., 1.05)     # prix d'exercice rapporté au niveau du SPX
 
+# Surface Bloomberg (ensemble C), extraite au terminal de l'ESCP le 24/11/2026. Fichier privé :
+# les conditions de Bloomberg interdisent sa diffusion, il reste dans data/brut/ (exclu de Git).
+BLOOMBERG = BRUT / "bloomberg" / "Bloomberg_SPX.xlsx"
+# Second classeur du même jour : taux (Treasury, OIS, SOFR), volatilité réalisée, indices,
+# et la chaîne complète des options SPX d'une seule séance, qui sert à tester le lissage.
+BLOOMBERG_COMPLEMENTS = BRUT / "bloomberg" / "Bloomberg_SPX_Taux_et_Complements.xlsx"
+# Prix de vraies options SPX mensuelles expirées (6 par mois, 2015-2025) : contrôle de la surface.
+BLOOMBERG_OPTIONS = BRUT / "bloomberg" / "Bloomberg_SPX_Historique_Options_Rolls.xlsx"
+DATE_CHAINE_BLOOMBERG = pd.Timestamp("2026-11-24")  # jour de l'extraction (aucune heure fournie)
+# Échéances à maturité constante, en jours calendaires (30DAY, 60DAY, 3MTH, 6MTH, 12MTH).
+ECHEANCES_BLOOMBERG = (30, 60, 91, 182, 365)
+NIVEAUX_BLOOMBERG = (.90, .95, 1., 1.05, 1.10)  # prix d'exercice rapporté au spot (K/S)
+# Points où la volatilité locale est calculée : à l'intérieur de la grille, loin de ses bords.
+# Degré du polynôme qui lisse chaque sourire (en variance totale) avant d'appliquer Dupire.
+DEGRE_LISSAGE = 2
+ECHEANCES_LOCALE = (30, 60)
+NIVEAUX_LOCALE = (.95, 1., 1.05)
+
 # Première séance où le VIX9D (lancé le 1er octobre 2013) et le VIX6M (lancé le
 # 27 novembre 2013) étaient tous deux publiés. Les valeurs antérieures sont rétropolées.
 DIFFUSION_VIX9D_VIX6M = pd.Timestamp("2013-11-27")
