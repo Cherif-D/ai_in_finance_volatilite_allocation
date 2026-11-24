@@ -776,7 +776,7 @@ Les colonnes ont \textbf{les mêmes noms} dans \fic{variables\_B.csv} (Bloomberg
 \end{itemize}
 
 \begin{attention}{Quatre fichiers privés}
-Les conditions de Bloomberg interdisent de diffuser ces données. Les quatre classeurs, et tout ce qui en dérive (\fic{variables\_B.csv}, \fic{variables\_C.csv} et quatre fichiers de contrôle), restent \textbf{hors du dépôt public} : le \fic{.gitignore} les exclut, et il ne faut \textbf{jamais} les committer. Pour travailler sur B et C, demandez les classeurs à Maxime, qui les a extraits, par un canal privé (pas GitHub), placez-les dans \fic{data/brut/bloomberg/}, puis lancez \fic{scripts/04\_surface\_bloomberg.py}.
+Les conditions de Bloomberg interdisent de diffuser ces données. Les quatre classeurs, et tout ce qui en dérive (\fic{variables\_B.csv}, \fic{variables\_C.csv} et quatre fichiers de contrôle), restent \textbf{hors du dépôt public} : le \fic{.gitignore} les exclut, et il ne faut \textbf{jamais} les committer. Pour travailler sur B et C, demandez les classeurs à Cherif ou à Maxime (qui les a extraits), par un canal privé (pas GitHub), placez-les dans \fic{data/brut/bloomberg/}, puis lancez \fic{scripts/04\_surface\_bloomberg.py}.
 \end{attention}
 
 \begin{valide}{Ce que j'ai vérifié sur ces données}
@@ -1100,7 +1100,7 @@ Les données brutes (247 Mo), les deux fichiers tirés de l'échantillon d'optio
 \item \fic{donnees\_quotidiennes.csv}, 29 colonnes : marchés, indices Cboe, surface, cash ;
 \item \fic{variables\_A.csv}, les 13 variables, \textbf{connues} à la date de la ligne ;
 \item \fic{cibles\_futures.csv}, la cible, \textbf{inconnue} à la date de la ligne ;
-\item \fic{variables\_B.csv} et \fic{variables\_C.csv}, \textbf{hors dépôt} : demandez les classeurs Bloomberg à Maxime (canal privé), placez-les dans \fic{data/brut/bloomberg/}, puis lancez \fic{scripts/04\_surface\_bloomberg.py}.
+\item \fic{variables\_B.csv} et \fic{variables\_C.csv}, \textbf{hors dépôt} : demandez les classeurs Bloomberg à Cherif ou à Maxime (canal privé), placez-les dans \fic{data/brut/bloomberg/}, puis lancez \fic{scripts/04\_surface\_bloomberg.py}.
 \end{itemize}
 Chaque colonne a sa fiche dans l'annexe~\ref{sec:fiches}. Le code qui les produit est dans \fic{portefeuille/} et \fic{scripts/}. Les tests et l'audit passent.
 

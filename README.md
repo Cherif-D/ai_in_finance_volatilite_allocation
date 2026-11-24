@@ -20,7 +20,7 @@
 
 Un investisseur détient un panier composé à 60 % d'actions américaines (l'ETF **SPY**, qui suit le S&P 500) et à 40 % d'obligations du Trésor américain à 7–10 ans (l'ETF **IEF**). Il veut que son portefeuille garde un risque à peu près constant, autour de **8 % de volatilité par an** : quand il s'attend à un marché agité, il investit moins et place le reste en liquidités (*cash*, rémunéré au taux des bons du Trésor).
 
-Toute la difficulté est de **prévoir le risque du mois qui vient**. Le passé récent en dit beaucoup, mais les **prix des options** sur le S&P 500 contiennent aussi ce que le marché anticipe (la *volatilité implicite*, dont le VIX est la mesure la plus connue).
+Toute la difficulté est de **prévoir le risque du mois qui vient**. Le passé récent en dit beaucoup, mais les **prix des options** sur le S&P 500 contiennent aussi ce que le marché anticipe (la *volatilité implicite*, dont le VIX est la mesure la plus connue). On peut aussi en tirer une lecture plus fine, la *volatilité locale* de Dupire, qui découpe ce risque attendu selon la date et le niveau de l'indice. Les deux sont calculées à partir d'une surface de volatilité implicite du S&P 500 extraite de Bloomberg (2012–2025).
 
 **Question de recherche :** les informations tirées des options améliorent-elles la prévision du risque à 21 séances du panier, et la performance nette de l'allocation qui s'en sert, par rapport aux seules données historiques ?
 
@@ -35,7 +35,8 @@ Ce problème intéresse les gérants de fonds diversifiés, de fonds à volatili
   - Exemple : si le modèle prévoit 16 %, on investit 8/16 = 50 % (30 % en SPY, 20 % en IEF, 50 % en cash).
 - **Ce qui compte comme une réussite :**
   1. les modèles qui reçoivent les informations des options (ensemble B) prévoient mieux, hors échantillon, que ceux qui ne voient que le passé (ensemble A) ;
-  2. la stratégie garde un risque proche de 8 % et perd moins en crise qu'un panier 60/40 toujours investi à 100 %.
+  2. la volatilité locale (ensemble C) apporte encore une information en plus de B ;
+  3. la stratégie garde un risque proche de 8 % et perd moins en crise qu'un panier 60/40 toujours investi à 100 %.
 
 On compare trois ensembles de variables, avec **la même cible, les mêmes dates et les mêmes modèles** : seule l'information donnée au modèle change.
 
@@ -60,7 +61,7 @@ On compare trois ensembles de variables, avec **la même cible, les mêmes dates
 
 # 5. Description des données
 
-Les données viennent de **29 sources publiques**, téléchargées le 19 novembre 2026 et alignées sur le calendrier de la Bourse de New York. Le fichier [`data/sources.json`](data/sources.json) donne, pour chacune, l'URL, la date et une empreinte SHA-256. Le détail complet est dans [`DONNEES.md`](DONNEES.md) et dans le [document de passation](docs/pdf/Passation_donnees_et_variables.pdf) (27 pages).
+Les données viennent de **29 sources publiques** et de **4 classeurs Bloomberg privés**. Les sources publiques ont été téléchargées le 19 novembre 2026 et alignées sur le calendrier de la Bourse de New York. Le fichier [`data/sources.json`](data/sources.json) donne, pour chacune, l'URL, la date et une empreinte SHA-256. Le détail complet est dans [`DONNEES.md`](DONNEES.md) et dans le [document de passation](docs/pdf/Passation_donnees_et_variables.pdf) (28 pages).
 
 ## Vue d'ensemble
 
@@ -107,13 +108,13 @@ Toutes les variables sont numériques et forment une **série temporelle quotidi
 - **Cible asymétrique :** 7,1 % en médiane, 8,4 % en moyenne, 47,8 % au maximum (signal du 5 mars 2020, krach du Covid). D'où le passage au logarithme.
 - **Variables A très corrélées entre elles :** les variances sur différentes fenêtres bougent ensemble.
 - **Changement de régime :** la corrélation SPY–IEF sur 63 séances vaut −0,36 en moyenne jusqu'en 2021, puis +0,06 depuis 2022, quand actions et obligations ont baissé ensemble.
-- **Premier indice :** la cible est plus corrélée au VIX (0,61) qu'à la volatilité passée sur 21 séances (0,53), sur tout l'échantillon. Ce n'est pas encore une prévision.
+- **Premier indice :** sur tout l'échantillon, la cible est plus corrélée aux options (VIX 0,61 ; IV Bloomberg à 30 jours au cours 0,62 ; volatilité locale au cours 0,58) qu'à la volatilité passée sur 21 séances (0,53). Ce ne sont pas encore des prévisions.
 
 ## Qualité des données
 
 - **Surface d'options :** Bloomberg couvre 2012–2025 ; 2 journées douteuses de 2022 sont écartées (3 518 séances restent). Sur 777 vraies options expirées (2015–2025), l'IV des contrats s'écarte de la surface de 0,32 point en médiane. La surface universitaire ne couvre que 2017–2023 (1 734 séances après rejet de 6 surfaces corrompues de mai 2019) ; elle s'accorde avec Bloomberg à 0,28 point près au cours.
-- **Valeurs manquantes :** VIX9D et VIX6M ne sont publiés en temps réel qu'à partir du 27 novembre 2013 (avant cette date, les valeurs ont été reconstruites après coup). Les 22 dernières cibles sont vides. Aucun trou n'est comblé artificiellement.
-- **Contrôles :** 17 tests unitaires (dont 3 sautés sans les classeurs Bloomberg privés) et un audit indépendant de 48 contrôles. Un recoupement avec de vrais contrats de 2022 trouve un écart médian de 0,55 point de volatilité avec la surface.
+- **Valeurs manquantes :** VIX9D et VIX6M ne sont publiés en temps réel qu'à partir du 27 novembre 2013 (avant cette date, les valeurs ont été reconstruites après coup). Les 22 dernières cibles sont vides, ainsi que B et C les 20 septembre et 27 octobre 2022 (journées rejetées). Aucun trou n'est comblé artificiellement.
+- **Contrôles :** 17 tests unitaires (dont 3 sautés sans les classeurs Bloomberg privés) et un audit indépendant de 48 contrôles. Un recoupement avec de vrais contrats de 2022 trouve un écart médian de 0,55 point de volatilité avec la surface universitaire.
 
 ---
 
@@ -123,8 +124,9 @@ Toutes les variables sont numériques et forment une **série temporelle quotidi
 |---|---|
 | Alignement de toutes les sources sur le calendrier NYSE, sans remplissage des trous | comparer des séances identiques sans inventer de données |
 | Rendements calculés sur les cours ajustés (dividendes réinvestis) | mesurer le vrai gain de l'investisseur |
-| Contrôle de qualité de la surface, avec rejet des journées aberrantes | éviter d'apprendre sur des données corrompues |
-| Interpolation de la surface (en variance, puis en variance totale selon l'échéance), un jour à la fois | obtenir les IV à 95/100/105 % et 30/60 jours sans utiliser d'information future |
+| Contrôle de qualité des deux surfaces (IV au cours au-dessus du VIX, sourire plat, arbitrage), avec rejet des journées aberrantes | éviter d'apprendre sur des données corrompues |
+| B : IV lues directement sur la grille Bloomberg (30 et 60 jours ; 95, 100 et 105 %) ; sur la surface universitaire, interpolation en variance puis en variance totale | obtenir les mêmes 8 indicateurs sur les deux sources, un jour à la fois |
+| C : prix à terme tiré des taux et du dividende, lissage de chaque sourire par une parabole, puis formule de Dupire (forme de Gatheral) | calculer la volatilité locale sans dériver des données bruitées |
 | Construction des variables A sur des fenêtres qui se terminent le jour du signal | aucune fuite du futur |
 | *À faire :* découpage chronologique avec **purge** (une cible d'apprentissage doit être terminée avant le début du test) | les cibles se chevauchent sur 21 séances : un découpage au hasard mélangerait passé et futur |
 | *À faire :* mise à l'échelle calculée sur la période d'apprentissage seulement | même raison |
@@ -168,7 +170,7 @@ Toutes les variables sont numériques et forment une **série temporelle quotidi
 │   ├── prepare/                données prêtes pour la modélisation (CSV)
 │   └── controles/              résultats des contrôles de qualité
 ├── docs/
-│   ├── pdf/                    document de passation (27 pages) et propositions du projet
+│   ├── pdf/                    document de passation (28 pages) et propositions du projet
 │   └── latex/                  source du document et script de ses figures
 ├── notebooks/                  exploration des données (étape 2)
 ├── selected_approach/          modèle retenu, évaluation et backtest
@@ -188,9 +190,9 @@ Ce code est importable depuis la racine du dépôt (`from portefeuille.features 
 **Fichiers absents du dépôt :**
 - les données brutes (247 Mo) ;
 - les deux fichiers tirés de l'échantillon d'options 2022 (`termes_indicatifs_2022S2.csv` et `controle_chaines_et_surfaces.csv`), dont le fournisseur encadre la redistribution ;
-- les quatre classeurs Bloomberg (`data/brut/bloomberg/`) et ce qui en dérive (`variables_B.csv`, `variables_C.csv` et quatre fichiers de contrôle) : Bloomberg interdit leur diffusion. Ils se demandent à Maxime, qui les a extraits, et ne doivent jamais être committés.
+- les quatre classeurs Bloomberg (`data/brut/bloomberg/`) et ce qui en dérive (`variables_B.csv`, `variables_C.csv` et quatre fichiers de contrôle) : Bloomberg interdit leur diffusion. Ils se demandent au groupe (Cherif, ou Maxime qui les a extraits), et ne doivent jamais être committés.
 
-Les scripts les recréent (voir section 9).
+Les scripts recréent les données publiques manquantes ; `scripts/04_surface_bloomberg.py` recrée B et C une fois les classeurs Bloomberg en place (voir section 9).
 
 ---
 
@@ -226,4 +228,7 @@ def lire(nom):
     return pd.read_csv(f"data/prepare/{nom}", index_col="date", parse_dates=True)
 
 quotidien, A, cible = lire("donnees_quotidiennes.csv"), lire("variables_A.csv"), lire("cibles_futures.csv")
+B, C = lire("variables_B.csv"), lire("variables_C.csv")   # fichiers privés, à placer dans data/prepare/
 ```
+
+Pour comparer les ensembles (A, A + Cboe, A + B, A + B + C), gardez les dates communes à tous : les jours disponibles diffèrent un peu. L'exemple complet, avec le découpage et la purge, est dans la section 12 du document de passation.
